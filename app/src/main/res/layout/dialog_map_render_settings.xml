@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/render_threads_title"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp"/>
+
+        <RadioGroup
+            android:id="@+id/radio_group_threads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/radio_thread_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/render_threads_auto"/>
+
+            <RadioButton
+                android:id="@+id/radio_thread_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/render_threads_1"/>
+
+            <RadioButton
+                android:id="@+id/radio_thread_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/render_threads_2"/>
+
+            <RadioButton
+                android:id="@+id/radio_thread_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/render_threads_4"/>
+        </RadioGroup>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginBottom="16dp"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_hardware_accel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hardware_accel_title"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_cache_labels"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cache_labels_title"
+            android:textSize="15sp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Separator -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Map Sources section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/map_sources_section_title"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_use_legacy_server"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/use_legacy_server_title"
+            android:textSize="15sp"
+            android:checked="false"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/maps_url_label"
+            android:textSize="13sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="4dp"/>
+
+        <EditText
+            android:id="@+id/edit_maps_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:textSize="13sp"
+            android:singleLine="true"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dems_url_label"
+            android:textSize="13sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="4dp"/>
+
+        <EditText
+            android:id="@+id/edit_dems_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:textSize="13sp"
+            android:singleLine="true"
+            android:layout_marginBottom="8dp"/>
+
+    </LinearLayout>
+</ScrollView>

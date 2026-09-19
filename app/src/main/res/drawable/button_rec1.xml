@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/button_border_transp"
+    android:shape="rectangle">
+    <corners android:radius="2dp"/>
+    <gradient
+        android:startColor="#90a4ae"
+        android:endColor="#90a4ae"
+        android:angle="90"
+        android:centerColor="#eceff1"/>
+</shape>

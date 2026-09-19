@@ -1,0 +1,139 @@
+0:46 androidx.annotation:annotation-experimental
+47:46 com.google.android.material:material
+94:46 androidx.legacy:legacy-support-v4
+141:46 androidx.activity:activity
+188:47 com.google.android.gms:play-services-oss-licenses
+236:1602 JSR 305
+1839:1732 Protobuf Nano
+3572:680 STL
+4253:11365 absl
+15619:11342 flatbuffers
+26962:11358 safeparcel
+38321:46 androidx.lifecycle:lifecycle-livedata
+38368:46 androidx.localbroadcastmanager:localbroadcastmanager
+38415:47 com.google.android.gms:play-services-measurement-base
+38463:10691 AndroidX annotation experimental library
+49155:10694 AndroidX lifecycle common library
+59850:10694 AndroidX lifecycle livedatacore library
+70545:10694 AndroidX lifecycle runtime library
+81240:10694 AndroidX tracing library
+91935:1096 Animal Sniffer
+93032:1892 Checker Framework Annotations
+94925:11357 Error Prone
+106283:11358 Guava JDK5
+117642:11362 Guava JDK7
+129005:11358 J2ObjC
+140364:11358 JSpecify
+151723:11307 JsInterop Annotations
+163031:11358 SafeParcelable library
+174390:10695 apksig
+185086:46 androidx.annotation:annotation
+185133:46 androidx.lifecycle:lifecycle-livedata-core
+185180:35 com.github.MikeOrtiz:TouchImageView
+185216:52 com.google.android.play:core
+185269:46 androidx.lifecycle:lifecycle-runtime
+185316:53 gov.nasa:worldwind
+185370:38 org.mapsforge:mapsforge-core
+185409:46 androidx.viewpager2:viewpager2
+185456:46 com.caverock:androidsvg
+185503:46 androidx.transition:transition
+185550:60 com.jjoe64:graphview
+185611:46 androidx.lifecycle:lifecycle-viewmodel
+185658:47 com.google.android.gms:play-services-ads-identifier
+185706:11358 JSR 250
+197065:46 androidx.work:work-runtime
+197112:46 androidx.fragment:fragment
+197159:47 com.google.android.gms:play-services-ads
+197207:1125 Checker Framework Utilities
+198333:11358 Dagger
+209692:12539 ExoPlayer
+222232:11358 Google Auto
+233591:11358 Gson
+244950:11365 JSR 330
+256316:102807 Kotlin
+359124:11358 Tink
+370483:11358 Volley
+381842:11361 admob
+393204:11358 conscrypt
+404563:10141 customtabsclient
+414705:12834 mp4parser
+427540:9217 p2putils
+436758:46 androidx.arch.core:core-common
+436805:46 androidx.versionedparcelable:versionedparcelable
+436852:46 androidx.constraintlayout:constraintlayout
+436899:47 com.google.android.gms:play-services-basement
+436947:46 androidx.startup:startup-runtime
+436994:46 androidx.appcompat:appcompat-resources
+437041:38 com.jcraft:jsch
+437080:46 androidx.media:media
+437127:46 androidx.dynamicanimation:dynamicanimation
+437174:47 com.google.android.gms:play-services-base
+437222:46 androidx.documentfile:documentfile
+437269:47 com.google.android.gms:play-services-ads-base
+437317:46 androidx.vectordrawable:vectordrawable-animated
+437364:46 androidx.core:core
+437411:46 androidx.viewpager:viewpager
+437458:38 org.mapsforge:mapsforge-map-android
+437497:46 com.esri.geometry:esri-geometry-api
+437544:38 org.mapsforge:mapsforge-map-reader
+437583:46 androidx.lifecycle:lifecycle-common
+437630:47 com.google.android.gms:play-services-measurement-sdk-api
+437678:47 com.google.android.gms:play-services-ads-lite
+437726:46 androidx.lifecycle:lifecycle-viewmodel-savedstate
+437773:46 androidx.appcompat:appcompat
+437820:47 com.google.android.gms:play-services-places-placereport
+437868:731 UTF
+438600:2500 zlib
+441101:3182 PCRE
+444284:19442 ICU4C
+463727:1558 RE2
+465286:1481 darts_clone
+466768:46 androidx.savedstate:savedstate
+466815:46 androidx.coordinatorlayout:coordinatorlayout
+466862:47 com.google.android.gms:play-services-tasks
+466910:46 androidx.drawerlayout:drawerlayout
+466957:73 net.sf.kxml:kxml2 BSD style
+467031:48 net.sf.kxml:kxml2 Public Domain
+467080:47 com.google.android.gms:play-services-appset
+467128:10694 AndroidX architecture core common library
+477823:10694 AndroidX architecture core runtime library
+488518:46 androidx.recyclerview:recyclerview
+488565:36 com.github.albfernandez:javadbf
+488602:46 androidx.vectordrawable:vectordrawable
+488649:46 androidx.loader:loader
+488696:38 org.mapsforge:mapsforge-map
+488735:46 androidx.cursoradapter:cursoradapter
+488782:46 androidx.legacy:legacy-support-core-utils
+488829:46 androidx.swiperefreshlayout:swiperefreshlayout
+488876:47 com.android.billingclient:billing
+488924:46 androidx.collection:collection
+488971:47 com.google.android.ump:user-messaging-platform
+489019:47 com.google.android.gms:play-services-location
+489067:46 androidx.browser:browser
+489114:46 androidx.cardview:cardview
+489161:46 androidx.exifinterface:exifinterface
+489208:46 androidx.customview:customview
+489255:46 androidx.legacy:legacy-support-core-ui
+489302:46 androidx.print:print
+489349:46 androidx.asynclayoutinflater:asynclayoutinflater
+489396:46 androidx.arch.core:core-runtime
+489443:46 androidx.interpolator:interpolator
+489490:46 androidx.slidingpanelayout:slidingpanelayout
+489537:38 org.mapsforge:mapsforge-themes
+489576:46 org.jetbrains.kotlin:kotlin-stdlib-jdk7
+489623:46 org.jetbrains.kotlin:kotlin-stdlib-common
+489670:46 androidx.lifecycle:lifecycle-service
+489717:46 androidx.sqlite:sqlite
+489764:46 androidx.tracing:tracing
+489811:46 androidx.room:room-common
+489858:46 org.jetbrains:annotations
+489905:46 androidx.concurrent:concurrent-futures
+489952:46 androidx.constraintlayout:constraintlayout-core
+489999:46 androidx.resourceinspection:resourceinspection-annotation
+490046:46 androidx.sqlite:sqlite-framework
+490093:46 androidx.room:room-runtime
+490140:46 androidx.emoji2:emoji2-views-helper
+490187:46 androidx.emoji2:emoji2
+490234:46 androidx.lifecycle:lifecycle-process
+490281:46 org.jetbrains.kotlin:kotlin-stdlib
+490328:41 junit:junit

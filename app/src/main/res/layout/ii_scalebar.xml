@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scale_set"
+    android:layout_width="wrap_content"
+    android:layout_height="30dp">
+    <com.giobat.AgpsTrackerPP.ScalebarView
+        android:id="@+id/custom_drawable_scale_view"
+        android:layout_width="100dp"
+        android:layout_height="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:foregroundGravity="center"/>
+    <TextView
+        android:textSize="12sp"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:id="@+id/scale_text_value"
+        android:padding="1dp"
+        android:layout_width="100dp"
+        android:layout_height="20dp"
+        android:shadowColor="@android:color/white"
+        android:shadowRadius="2"
+        android:layout_above="@+id/custom_drawable_scale_view"
+        android:layout_centerHorizontal="true"/>
+</RelativeLayout>

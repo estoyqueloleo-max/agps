@@ -1,0 +1,122 @@
+plugins {
+    id 'com.android.application'
+}
+
+def sftpProps = new Properties()
+def secretsFile = rootProject.file("secrets.properties")
+def secretsEncFile = rootProject.file("secrets.enc.properties")
+
+if (!secretsFile.exists() && secretsEncFile.exists()) {
+    try {
+        def sopsBin = "sops"
+        def userHome = System.getProperty("user.home")
+        if (new File(userHome, "go/bin/sops").exists()) {
+            sopsBin = new File(userHome, "go/bin/sops").absolutePath
+        }
+        def projectAgeKey = rootProject.file(".age-key.txt")
+        def ageKeyFile = projectAgeKey.exists() ? projectAgeKey : new File(userHome, ".config/sops/age/keys.txt")
+        def envList = []
+        System.getenv().each { k, v -> envList << "$k=$v" }
+        if (ageKeyFile.exists() && !System.getenv().containsKey("SOPS_AGE_KEY_FILE")) {
+            envList << "SOPS_AGE_KEY_FILE=${ageKeyFile.absolutePath}"
+        }
+        def sout = new ByteArrayOutputStream()
+        def serr = new ByteArrayOutputStream()
+        def proc = [sopsBin, "-d", "--input-type", "dotenv", "--output-type", "dotenv", secretsEncFile.absolutePath].execute(envList, rootProject.projectDir)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitFor()
+        if (proc.exitValue() == 0) {
+            secretsFile.text = sout.toString()
+        }
+    } catch (Exception ignored) {
+    }
+}
+
+if (secretsFile.exists()) {
+    secretsFile.withInputStream { sftpProps.load(it) }
+}
+
+android {
+	namespace "com.giobat.AgpsTrackerPP"
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId 'com.giobat.AgpsTrackerPP.community'
+        minSdkVersion 24
+        targetSdkVersion 34
+        versionCode 98
+        versionName "0.1.0"
+        multiDexEnabled true
+
+        def sftpHost = System.getenv("SFTP_HOST") ?: sftpProps.getProperty("SFTP_HOST", "agps-tracker.cloud")
+        def sftpUser = System.getenv("SFTP_USER") ?: sftpProps.getProperty("SFTP_USER", "giobat")
+        def sftpPass = System.getenv("SFTP_PASS") ?: sftpProps.getProperty("SFTP_PASS", "")
+
+        buildConfigField "String", "SFTP_HOST", "\"${sftpHost}\""
+        buildConfigField "String", "SFTP_USER", "\"${sftpUser}\""
+        buildConfigField "String", "SFTP_PASS", "\"${sftpPass}\""
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+    lint {
+        abortOnError false
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.google.android.gms:play-services-location:19.0.1'
+    implementation 'com.google.android.gms:play-services-base:18.0.1'
+    implementation 'androidx.work:work-runtime:2.7.0'
+    implementation 'androidx.room:room-runtime:2.2.5'
+    implementation 'androidx.preference:preference:1.1.1'
+    implementation 'androidx.browser:browser:1.4.0'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'org.checkerframework:checker-qual:3.42.0'
+    implementation 'org.checkerframework:checker-compat-qual:2.5.5'
+    implementation 'com.jcraft:jzlib:1.1.3'
+    implementation 'com.jcraft:jsch:0.1.55'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.exifinterface:exifinterface:1.3.6'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+
+    // Modern Mapsforge 0.25.0 dependencies (native multi-threading, bugfixes, parent tile rendering)
+    implementation 'org.mapsforge:mapsforge-map-android:0.25.0'
+    implementation 'org.mapsforge:mapsforge-map-reader:0.25.0'
+    implementation 'org.mapsforge:mapsforge-map:0.25.0'
+    implementation 'org.mapsforge:mapsforge-core:0.25.0'
+
+    // Testing dependencies
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:4.11.0'
+    testImplementation 'org.robolectric:robolectric:4.11.1'
+    testImplementation 'androidx.test:core:1.5.0'
+    testImplementation 'androidx.test.ext:junit:1.1.5'
+}
+
+
+
