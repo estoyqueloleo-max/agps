@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.mapsforge.core.graphics.Bitmap;
+import org.mapsforge.core.model.LatLong;
+import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
+import org.mapsforge.map.layer.overlay.Marker;
+import org.mapsforge.map.layer.overlay.Polyline;
 
 /* JADX INFO: loaded from: classes.dex */
 public class j implements Callable<String> {
@@ -141,29 +146,19 @@ public class j implements Callable<String> {
         short s16 = 15;
         iArr[15] = 0;
         iArr2[15] = 0;
-        while (true) {
-            int i31 = s15;
-            int i32 = i31;
-            while (i32 < i23) {
-                int i33 = s15;
-                while (i33 < i24) {
-                    if (sArr2[i32][i33] != 0) {
-                        if (sArr2[i32][i33] != s16) {
-                            int i34 = i31 + 1;
-                            ArrayList arrayList = new ArrayList();
+        int outerPass = 0;
+        while (outerPass++ < 10) {
+            int i31 = 0;
+            for (int i32 = 0; i32 < i23; i32++) {
+                for (int i33 = 0; i33 < i24; i33++) {
+                    if (sArr2[i32][i33] != 0 && sArr2[i32][i33] != s16) {
                             int i35 = this.f3020f[sArr2[i32][i33]];
                             int i36 = this.f3021g[sArr2[i32][i33]];
                             if (i35 == 0) {
-                                arrayList = arrayList;
-                                i33 = i33;
-                                s13 = s13;
-                                s15 = s15;
-                                c9 = 4;
-                                c8 = 3;
-                                s16 = 15;
-                                i9 = i32;
-                                s8 = s14;
+                                sArr2[i32][i33] = 0;
                             } else {
+                                int i34 = i31 + 1;
+                                ArrayList arrayList = new ArrayList();
                                 if (i35 == i29 || i35 == i30) {
                                     int i37 = i33;
                                     i9 = i32;
@@ -191,7 +186,8 @@ public class j implements Callable<String> {
                                 int i39 = i10;
                                 int i40 = i9;
                                 short s17 = 0;
-                                while (true) {
+                                int traceSafety = 0;
+                                while (i38 != 0 && ++traceSafety < 100000) {
                                     if (i38 != 0) {
                                         if (i38 != s14) {
                                             if (i38 != s13) {
@@ -227,6 +223,7 @@ public class j implements Callable<String> {
                                                             s8 = 1;
                                                             s15 = 0;
                                                             sArr2[i12][i13] = 0;
+                                                            break;
                                                         } else {
                                                             i15 = i12;
                                                             i16 = i13;
@@ -299,10 +296,6 @@ public class j implements Callable<String> {
                                                     i14 = this.f3020f[sArr2[i12][i13]];
                                                     int i43 = this.f3021g[sArr2[i12][i13]];
                                                     if (i14 == 0) {
-                                                        if (i14 == 5) {
-                                                        }
-                                                        if (i12 > 0) {
-                                                        }
                                                         i33 = i10;
                                                         s13 = s13;
                                                         c9 = 4;
@@ -310,6 +303,7 @@ public class j implements Callable<String> {
                                                         s8 = 1;
                                                         s15 = 0;
                                                         sArr2[i12][i13] = 0;
+                                                        break;
                                                     }
                                                 }
                                             } else if (i39 < i24 - 1) {
@@ -320,10 +314,6 @@ public class j implements Callable<String> {
                                                 i14 = this.f3020f[sArr2[i12][i13]];
                                                 int i44 = this.f3021g[sArr2[i12][i13]];
                                                 if (i14 == 0) {
-                                                    if (i14 == 5) {
-                                                    }
-                                                    if (i12 > 0) {
-                                                    }
                                                     i33 = i10;
                                                     s13 = s13;
                                                     c9 = 4;
@@ -331,6 +321,7 @@ public class j implements Callable<String> {
                                                     s8 = 1;
                                                     s15 = 0;
                                                     sArr2[i12][i13] = 0;
+                                                    break;
                                                 }
                                             }
                                         } else if (i40 > 0) {
@@ -341,10 +332,6 @@ public class j implements Callable<String> {
                                             i14 = this.f3020f[sArr2[i12][i13]];
                                             int i45 = this.f3021g[sArr2[i12][i13]];
                                             if (i14 == 0) {
-                                                if (i14 == 5) {
-                                                }
-                                                if (i12 > 0) {
-                                                }
                                                 i33 = i10;
                                                 s13 = s13;
                                                 c9 = 4;
@@ -352,6 +339,7 @@ public class j implements Callable<String> {
                                                 s8 = 1;
                                                 s15 = 0;
                                                 sArr2[i12][i13] = 0;
+                                                break;
                                             }
                                         }
                                     }
@@ -362,45 +350,12 @@ public class j implements Callable<String> {
                                     c8 = 3;
                                     s15 = 0;
                                 }
+                                this.f3015a.add(arrayList);
+                                i31 = i34;
                             }
-                            this.f3015a.add(arrayList);
-                            i31 = i34;
-                        } else {
-                            c9 = 4;
                         }
-                        s14 = s8;
-                        c10 = c9;
-                        c8 = c8;
-                        i32 = i9;
-                        s16 = s16;
-                        i30 = 6;
-                        s15 = s15;
-                        i29 = 5;
-                        s13 = s13;
-                        i33++;
-                    } else {
-                        c9 = c10;
                     }
-                    i9 = i32;
-                    s8 = s14;
-                    s14 = s8;
-                    c10 = c9;
-                    c8 = c8;
-                    i32 = i9;
-                    s16 = s16;
-                    i30 = 6;
-                    s15 = s15;
-                    i29 = 5;
-                    s13 = s13;
-                    i33++;
                 }
-                s15 = s15;
-                i32++;
-                s16 = s16;
-                i30 = 6;
-                i29 = 5;
-                s13 = s13;
-            }
             short s18 = s16;
             short s19 = s13;
             short s20 = s14;
@@ -438,7 +393,8 @@ public class j implements Callable<String> {
                 short s7 = sArr[i10][i9];
                 short s8 = sArr[i10 + 1][i9];
                 double d13 = oVar.f3090f;
-                double d14 = (((double) (i7 - s7)) * d13) / ((double) (s8 - s7));
+                double denom = (double) (s8 - s7);
+                double d14 = (denom == 0.0d) ? (0.5d * d13) : ((((double) (i7 - s7)) * d13) / denom);
                 d8 = aVar.maxLatitude - (((double) i10) * d13);
                 d9 = d12;
                 dAbs2 = Math.abs(d14);
@@ -452,7 +408,9 @@ public class j implements Callable<String> {
                 short s9 = sArr2[i12];
                 short s10 = sArr[i11][i12 + 1];
                 double d16 = oVar2.f3089e;
-                dAbs = Math.abs((((double) (i7 - s9)) * d16) / ((double) (s10 - s9))) + (((double) i12) * d16) + aVar.minLongitude;
+                double denom = (double) (s10 - s9);
+                double frac = (denom == 0.0d) ? (0.5d * d16) : Math.abs((((double) (i7 - s9)) * d16) / denom);
+                dAbs = frac + (((double) i12) * d16) + aVar.minLongitude;
             } else if (i8 != 4) {
                 dAbs = 0.0d;
             } else {
@@ -464,7 +422,8 @@ public class j implements Callable<String> {
                 short s11 = sArr[i14][i13];
                 short s12 = sArr[i14 + 1][i13];
                 double d18 = oVar3.f3090f;
-                double d19 = (((double) (i7 - s11)) * d18) / ((double) (s12 - s11));
+                double denom = (double) (s12 - s11);
+                double d19 = (denom == 0.0d) ? (0.5d * d18) : ((((double) (i7 - s11)) * d18) / denom);
                 d8 = aVar.maxLatitude - (((double) i14) * d18);
                 dAbs2 = Math.abs(d19);
             }
@@ -482,9 +441,19 @@ public class j implements Callable<String> {
             short s13 = sArr3[i16];
             short s14 = sArr[i15][i16 + 1];
             double d22 = oVar4.f3089e;
-            dAbs = Math.abs((((double) (i7 - s13)) * d22) / ((double) (s14 - s13))) + (((double) i16) * d22) + aVar.minLongitude;
+            double denom = (double) (s14 - s13);
+            double frac = (denom == 0.0d) ? (0.5d * d22) : Math.abs((((double) (i7 - s13)) * d22) / denom);
+            dAbs = frac + (((double) i16) * d22) + aVar.minLongitude;
             d10 = d21;
         }
+        if (Double.isNaN(d10) || Double.isInfinite(d10)) {
+            d10 = aVar.minLatitude;
+        }
+        if (Double.isNaN(dAbs) || Double.isInfinite(dAbs)) {
+            dAbs = aVar.minLongitude;
+        }
+        d10 = Math.max(-90.0d, Math.min(90.0d, d10));
+        dAbs = Math.max(-180.0d, Math.min(180.0d, dAbs));
         return new org.mapsforge.core.model.LatLong(d10, dAbs);
     }
 
@@ -609,113 +578,80 @@ public class j implements Callable<String> {
             } catch (Exception unused2) {
             }
         } catch (IOException e8) {
-            MainActivity.f3625m1.a("showWindowIsolines:" + e8);
+            if (MainActivity.f3625m1 != null) {
+                MainActivity.f3625m1.a("showWindowIsolines:" + e8);
+            }
         }
         o.c(15);
         v2.e("GPS-M", "Contour Task ended");
         return "OK";
     }
 
-    public final void d(String str, int i7) {
-        org.mapsforge.map.layer.overlay.Polyline dVar;
-        boolean z;
-        int i8;
-        char c8;
-        boolean z7;
-        boolean z8 = true;
-        char c9 = 2;
-        org.mapsforge.core.graphics.Paint lVarA = n2.a(Color.argb(50, 50, 50, 50), 1, 2);
-        org.mapsforge.core.graphics.Paint lVarA2 = n2.a(Color.argb(100, 20, 20, 20), 2, 2);
-        int i9 = 0;
-        while (i9 < this.f3016b.size()) {
-            if (this.f3016b.get(i9).f3172b % 100 == 0) {
-                dVar = new org.mapsforge.map.layer.overlay.Polyline(lVarA2, org.mapsforge.map.android.graphics.AndroidGraphicFactory.INSTANCE);
-                z = z8;
-            } else {
-                dVar = new org.mapsforge.map.layer.overlay.Polyline(lVarA, org.mapsforge.map.android.graphics.AndroidGraphicFactory.INSTANCE);
-                z = false;
-            }
-            dVar.getLatLongs().clear();
-            for (int i10 = 0; i10 < this.f3016b.get(i9).f3171a.size(); i10++) {
-                dVar.getLatLongs().add(this.f3016b.get(i9).f3171a.get(i10));
-            }
-            if (z) {
-                int size = this.f3016b.get(i9).f3171a.size();
-                int i11 = 0;
-                double dAtan2 = 0.0d;
-                while (i11 < size - 1) {
-                    org.mapsforge.core.model.LatLong cVar3 = this.f3016b.get(i9).f3171a.get(i11);
-                    int i12 = i11 + 1;
-                    org.mapsforge.core.model.LatLong cVar4 = this.f3016b.get(i9).f3171a.get(i12);
-                    Objects.requireNonNull(cVar3);
-                    int i13 = i9;
-                    double radians = Math.toRadians(cVar4.latitude - cVar3.latitude);
-                    double radians2 = Math.toRadians(cVar4.longitude - cVar3.longitude);
-                    double d8 = radians / 2.0d;
-                    double dSin = Math.sin(d8) * Math.sin(d8);
-                    double dCos = Math.cos(Math.toRadians(cVar3.latitude));
-                    org.mapsforge.core.graphics.Paint lVar = lVarA2;
-                    org.mapsforge.core.graphics.Paint lVar2 = lVarA;
-                    double d9 = radians2 / 2.0d;
-                    double dSin2 = (Math.sin(d9) * Math.sin(d9) * Math.cos(Math.toRadians(cVar4.latitude)) * dCos) + dSin;
-                    dAtan2 += Math.atan2(Math.sqrt(dSin2), Math.sqrt(1.0d - dSin2)) * 2.0d * 6378137.0d;
-                    if (dAtan2 > 1000.0d) {
-                        i8 = i13;
-                        org.mapsforge.core.model.LatLong cVar6 = this.f3016b.get(i8).f3171a.get(i11);
-                        int i14 = (int) this.f3016b.get(i8).f3172b;
+    public final void d(String demName, int elevation) {
+        org.mapsforge.core.graphics.Paint minorContourPaint = n2.a(Color.argb(180, 140, 85, 45), 2, 2);
+        org.mapsforge.core.graphics.Paint majorContourPaint = n2.a(Color.argb(230, 80, 40, 20), 3, 2);
+        for (int i = 0; i < this.f3016b.size(); i++) {
+            t contour = this.f3016b.get(i);
+            boolean isMajor = (contour.f3172b % 100 == 0);
+            Polyline polyline = new Polyline(isMajor ? majorContourPaint : minorContourPaint, AndroidGraphicFactory.INSTANCE);
+            polyline.setPoints(contour.f3171a);
+            o.demOverlayLayers.add(polyline);
+            MainActivity.f3626n1.a(polyline);
+
+            if (isMajor) {
+                int pointCount = contour.f3171a.size();
+                int pointIdx = 0;
+                double accumulatedDistance = 0.0d;
+                while (pointIdx < pointCount - 1) {
+                    LatLong pt1 = contour.f3171a.get(pointIdx);
+                    int nextIdx = pointIdx + 1;
+                    LatLong pt2 = contour.f3171a.get(nextIdx);
+                    Objects.requireNonNull(pt1);
+                    double dLat = Math.toRadians(pt2.latitude - pt1.latitude);
+                    double dLon = Math.toRadians(pt2.longitude - pt1.longitude);
+                    double sinHalfLat = Math.sin(dLat / 2.0d);
+                    double sinHalfLon = Math.sin(dLon / 2.0d);
+                    double a = (sinHalfLat * sinHalfLat) + (sinHalfLon * sinHalfLon * Math.cos(Math.toRadians(pt1.latitude)) * Math.cos(Math.toRadians(pt2.latitude)));
+                    accumulatedDistance += Math.atan2(Math.sqrt(a), Math.sqrt(1.0d - a)) * 2.0d * 6378137.0d;
+                    if (accumulatedDistance > 1000.0d) {
+                        LatLong labelPosition = contour.f3171a.get(pointIdx);
+                        int altValue = (int) contour.f3172b;
                         Context context = this.f3018d;
-                        List<n> list = o.f3084p;
-                        String string = Integer.toString(i14);
+                        String altText = Integer.toString(altValue);
                         TextView textView = new TextView(context);
                         textView.setGravity(17);
-                        textView.setTextSize(8.0f);
-                        z7 = true;
+                        textView.setTextSize(9.0f);
                         textView.setTypeface(textView.getTypeface(), 1);
-                        textView.setText(string);
-                        org.mapsforge.core.graphics.Bitmap bVarB = n2.b(context, textView);
-                        c8 = 2;
-                        org.mapsforge.map.layer.overlay.Marker bVar = new org.mapsforge.map.layer.overlay.Marker(cVar6, bVarB, 0, (-bVarB.getHeight()) / 2);
-                        bVar.setVisible(false);
-                        bVar.requestRedraw();
-                        AgpsApplication.f3580w.add(bVar);
-                        MainActivity.f3626n1.a(bVar);
-                        dAtan2 = 0.0d;
-                    } else {
-                        i8 = i13;
-                        c8 = 2;
-                        z7 = true;
+                        textView.setTextColor(Color.rgb(80, 40, 20));
+                        textView.setText(altText);
+                        Bitmap labelBitmap = n2.b(context, textView);
+                        Marker altMarker = new Marker(labelPosition, labelBitmap, 0, (-labelBitmap.getHeight()) / 2);
+                        altMarker.setVisible(false);
+                        altMarker.requestRedraw();
+                        AgpsApplication.f3580w.add(altMarker);
+                        MainActivity.f3626n1.a(altMarker);
+                        accumulatedDistance = 0.0d;
                     }
-                    c9 = c8;
-                    lVarA = lVar2;
-                    z8 = z7;
-                    i11 = i12;
-                    lVarA2 = lVar;
-                    i9 = i8;
+                    pointIdx = nextIdx;
                 }
             }
-            MainActivity.f3626n1.a(dVar);
-            c9 = c9;
-            lVarA = lVarA;
-            z8 = z8;
-            i9++;
-            lVarA2 = lVarA2;
         }
     }
 
-    public final void e(String str, int i7) {
-        org.mapsforge.core.graphics.Paint lVarA = n2.a(Color.argb(100, 235, 235, 235), 1, 1);
-        for (int i8 = 0; i8 < this.f3016b.size(); i8++) {
-            org.mapsforge.map.layer.overlay.Polyline dVar = new org.mapsforge.map.layer.overlay.Polyline(lVarA, org.mapsforge.map.android.graphics.AndroidGraphicFactory.INSTANCE);
-            dVar.getLatLongs().clear();
-            dVar.getLatLongs().addAll(this.f3016b.get(i8).f3171a);
-            MainActivity.f3626n1.a(dVar);
+    public final void e(String demName, int elevation) {
+        org.mapsforge.core.graphics.Paint contourPaint = n2.a(Color.argb(200, 110, 65, 30), 2, 2);
+        for (int i = 0; i < this.f3016b.size(); i++) {
+            Polyline polyline = new Polyline(contourPaint, AndroidGraphicFactory.INSTANCE);
+            polyline.setPoints(this.f3016b.get(i).f3171a);
+            o.demOverlayLayers.add(polyline);
+            MainActivity.f3626n1.a(polyline);
         }
         StringBuilder sbA = android.support.v4.media.b.a("FINE CONTOUR ------------------>   dem Name=");
         boolean z = MainActivity.I0;
-        String[] strArrSplit = str.split("/");
+        String[] strArrSplit = demName.split("/");
         sbA.append(strArrSplit[strArrSplit.length - 1]);
         sbA.append(" Elevation=");
-        sbA.append(i7);
+        sbA.append(elevation);
         v2.e("GPS-M", sbA.toString());
     }
 }

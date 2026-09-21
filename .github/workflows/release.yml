@@ -6,6 +6,11 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
@@ -43,6 +48,9 @@ jobs:
             echo "SOPS_AGE_KEY secret not set, skipping secrets decryption."
           fi
 
+      - name: Run Unit & Visual Tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
       - name: Build Release APK
         run: ./gradlew assembleRelease --stacktrace
 
@@ -52,9 +60,13 @@ jobs:
           mkdir -p release-assets
           RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
           if [ -f "$RELEASE_APK" ]; then
-            TAG_OR_REF="${{ github.ref_name }}"
-            if [ -z "$TAG_OR_REF" ] || [ "$TAG_OR_REF" = "main" ]; then
-              TAG_OR_REF="latest"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              TAG_OR_REF="PR-${{ github.event.pull_request.number }}"
+            else
+              TAG_OR_REF="${{ github.ref_name }}"
+              if [ -z "$TAG_OR_REF" ] || [ "$TAG_OR_REF" = "master" ]; then
+                TAG_OR_REF="latest"
+              fi
             fi
             cp "$RELEASE_APK" "release-assets/AGPS-Tracker-Community-${TAG_OR_REF}.apk"
             cp "$RELEASE_APK" "release-assets/AGPS-Tracker-Community.apk"
@@ -68,7 +80,7 @@ jobs:
       - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AGPS-Tracker-Community-APK
+          name: AGPS-Tracker-Community-APK${{ github.event_name == 'pull_request' && format('-PR-{0}', github.event.pull_request.number) || '' }}
           path: release-assets/*.apk
           retention-days: 30
 

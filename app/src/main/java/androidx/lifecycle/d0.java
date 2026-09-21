@@ -38,14 +38,18 @@ public class d0 implements androidx.activity.result.b<androidx.activity.result.a
         Intent intent = aVar.f289i;
         String stringExtra = intent.getStringExtra("RESULT_PATH");
         if (stringExtra == null) return;
-        for (c2.n nVar : (ArrayList<c2.n>) c2.o.f3084p) {
-            StringBuilder sbA = android.support.v4.media.b.a("Dems/");
-            sbA.append(nVar.f3071a);
-            if (stringExtra.equals(sbA.toString())) {
-                MainActivity.M0.setCenter(nVar.f3072b.getCenterPoint());
+        AgpsApplication.f3581y = true;
+        MainActivity.U0 = true;
+        if (c2.o.f3084p != null) {
+            for (c2.n demItem : c2.o.f3084p) {
+                String demPath = "Dems/" + demItem.f3071a;
+                if (stringExtra.equals(demPath)) {
+                    if (MainActivity.M0 != null && demItem.f3072b != null) {
+                        MainActivity.M0.setCenter(demItem.f3072b.getCenterPoint());
+                    }
+                    break;
+                }
             }
-            AgpsApplication.f3581y = true;
-            MainActivity.U0 = true;
         }
     }
 }
