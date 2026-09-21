@@ -26,6 +26,8 @@ public class o {
 
     /* JADX INFO: renamed from: p, reason: collision with root package name */
     public static List<n> f3084p = new ArrayList();
+    /** Active DEM overlay layers (polygons, polylines, contours) to preserve during map refresh */
+    public static final List<org.mapsforge.map.layer.Layer> demOverlayLayers = new CopyOnWriteArrayList<>();
 
     /* JADX INFO: renamed from: a, reason: collision with root package name */
     public String f3085a;
@@ -153,98 +155,100 @@ public class o {
         return new BoundingBox(cVar2.latitude, cVar2.longitude, cVar3.latitude, cVar3.longitude);
     }
 
-    public static void c(int i7) {
-        boolean z = MainActivity.M0.getModel().mapViewPosition.getZoomLevel() >= i7;
-        CopyOnWriteArrayList<Marker> copyOnWriteArrayList = AgpsApplication.f3580w;
-        if (copyOnWriteArrayList != null) {
-            for (Marker bVar : copyOnWriteArrayList) {
-                bVar.setVisible(z);
-                bVar.requestRedraw();
+    public static void c(int minZoom) {
+        if (MainActivity.M0 == null || MainActivity.M0.getModel() == null
+                || MainActivity.M0.getModel().mapViewPosition == null) {
+            return;
+        }
+        boolean isVisible = MainActivity.M0.getModel().mapViewPosition.getZoomLevel() >= minZoom;
+        CopyOnWriteArrayList<Marker> markers = AgpsApplication.f3580w;
+        if (markers != null) {
+            for (Marker marker : markers) {
+                marker.setVisible(isVisible);
+                marker.requestRedraw();
             }
         }
     }
 
-    public static void d(BoundingBox aVar, int i7) {
-        ArrayList<LatLong> arrayList = new ArrayList<>();
-        arrayList.add(new LatLong(aVar.minLatitude, aVar.minLongitude));
-        arrayList.add(new LatLong(aVar.maxLatitude, aVar.minLongitude));
-        arrayList.add(new LatLong(aVar.maxLatitude, aVar.maxLongitude));
-        arrayList.add(new LatLong(aVar.minLatitude, aVar.maxLongitude));
-        arrayList.add(new LatLong(aVar.minLatitude, aVar.minLongitude));
-        f(arrayList, i7);
+    public static void d(BoundingBox box, int level) {
+        ArrayList<LatLong> borderPoints = new ArrayList<>();
+        borderPoints.add(new LatLong(box.minLatitude, box.minLongitude));
+        borderPoints.add(new LatLong(box.maxLatitude, box.minLongitude));
+        borderPoints.add(new LatLong(box.maxLatitude, box.maxLongitude));
+        borderPoints.add(new LatLong(box.minLatitude, box.maxLongitude));
+        borderPoints.add(new LatLong(box.minLatitude, box.minLongitude));
+        f(borderPoints, level);
     }
 
     public static void e(Context context) {
         AgpsApplication.f3580w.clear();
-        for (n nVar : f3084p) {
-            BoundingBox aVar = nVar.f3072b;
-            LatLong cVar = new LatLong(aVar.minLatitude + 0.5d, aVar.minLongitude + 0.5d);
-            String strA = n.a(new LatLong(cVar.latitude, cVar.longitude));
+        demOverlayLayers.clear();
+        for (n demFile : f3084p) {
+            BoundingBox box = demFile.f3072b;
+            LatLong center = new LatLong(box.minLatitude + 0.5d, box.minLongitude + 0.5d);
+            String label = n.a(new LatLong(center.latitude, center.longitude));
             TextView textView = new TextView(context);
-            textView.setText(strA);
+            textView.setText(label);
             textView.setTextSize(12.0f);
             textView.setGravity(17);
-            textView.setBackgroundColor(Color.argb(100, 200, 200, 200));
-            Bitmap bVarB = n2.b(context, textView);
-            Marker bVar = new Marker(cVar, bVarB, 0, (-bVarB.getHeight()) / 2);
-            MainActivity.f3626n1.a(bVar);
-            bVar.setVisible(true);
-            bVar.requestRedraw();
-            AgpsApplication.f3580w.add(bVar);
-            d(nVar.f3072b, 1);
+            textView.setBackgroundColor(Color.argb(160, 200, 200, 200));
+            Bitmap bitmap = n2.b(context, textView);
+            Marker marker = new Marker(center, bitmap, 0, (-bitmap.getHeight()) / 2);
+            MainActivity.f3626n1.a(marker);
+            marker.setVisible(true);
+            marker.requestRedraw();
+            AgpsApplication.f3580w.add(marker);
+            d(demFile.f3072b, 1);
         }
         c(9);
+        if (MainActivity.M0 != null && MainActivity.M0.getLayerManager() != null) {
+            try {
+                MainActivity.M0.getLayerManager().redrawLayers();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
-    public static void f(List<LatLong> list, int i7) {
-        Paint lVarA = null;
-        Paint lVarA2 = null;
-        Paint lVarA3 = null;
-        Paint lVarA4 = null;
-        if (i7 == 1) {
-            lVarA = n2.a(Color.argb(250, 88, 146, 117), 1, 2);
-            lVarA4 = n2.a(Color.argb(10, 255, 255, 255), 1, 1);
+    public static void f(List<LatLong> points, int level) {
+        Paint strokePaint;
+        Paint fillPaint;
+        if (level == 1) {
+            strokePaint = n2.a(Color.argb(250, 88, 146, 117), 3, 2);
+            fillPaint = n2.a(Color.argb(30, 88, 146, 117), 1, 1);
+        } else if (level == 2) {
+            strokePaint = n2.a(Color.argb(250, 0, 0, 0), 4, 2);
+            fillPaint = n2.a(Color.argb(120, 76, 150, 0), 3, 1);
         } else {
-            if (i7 == 2) {
-                lVarA2 = n2.a(Color.argb(250, 0, 0, 0), 5, 2);
-                lVarA3 = n2.a(Color.argb(150, 76, 150, 0), 3, 1);
-            } else if (i7 == 3) {
-                lVarA2 = n2.a(Color.argb(255, 100, 100, 100), 1, 2);
-                lVarA3 = n2.a(Color.argb(10, 255, 178, 102), 1, 1);
-            }
-            lVarA4 = lVarA3;
-            lVarA = lVarA2;
+            strokePaint = n2.a(Color.argb(255, 100, 100, 100), 2, 2);
+            fillPaint = n2.a(Color.argb(30, 255, 178, 102), 1, 1);
         }
-        GraphicFactory cVar4 = AndroidGraphicFactory.INSTANCE;
-        if (i7 != 3) {
-            Polygon cVar5 = new Polygon(lVarA4, lVarA, cVar4);
-            cVar5.getLatLongs().clear();
-            cVar5.getLatLongs().addAll(list);
-            List<LatLong> list2 = cVar5.getLatLongs();
-            if (list2.size() > 0) {
-                list2.add(list2.get(0));
-            }
-            MainActivity.f3626n1.a(cVar5);
+        GraphicFactory graphicFactory = AndroidGraphicFactory.INSTANCE;
+        if (level != 3) {
+            Polygon polygon = new Polygon(fillPaint, strokePaint, graphicFactory);
+            polygon.setPoints(points);
+            demOverlayLayers.add(polygon);
+            MainActivity.f3626n1.a(polygon);
         }
-        Polyline dVar = new Polyline(lVarA, cVar4);
-        dVar.getLatLongs().clear();
-        dVar.getLatLongs().addAll(list);
-        MainActivity.f3626n1.a(dVar);
+        Polyline polyline = new Polyline(strokePaint, graphicFactory);
+        polyline.setPoints(points);
+        demOverlayLayers.add(polyline);
+        MainActivity.f3626n1.a(polyline);
     }
 
     public static void g(Context context) {
-        for (n nVar : (List<n>) (List<?>) f3084p) {
-            RandomAccessFile randomAccessFile = nVar.f3075e;
+        for (n demItem : (List<n>) (List<?>) f3084p) {
+            RandomAccessFile randomAccessFile = demItem.f3075e;
             if (randomAccessFile != null) {
                 try {
                     randomAccessFile.close();
-                    nVar.f3075e = null;
+                    demItem.f3075e = null;
                 } catch (Exception unused) {
                 }
             }
         }
         ((ArrayList) f3084p).clear();
         AgpsApplication.f3580w.clear();
+        demOverlayLayers.clear();
         File fileX = MainActivity.X(context, "Dems", 2);
         File[] fileArrListFiles = (fileX == null || !fileX.isDirectory()) ? null : fileX.listFiles();
         if (fileArrListFiles != null) {

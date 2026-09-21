@@ -754,6 +754,23 @@ public class m2 implements XmlRenderThemeMenuCallback {
                 } catch (Exception unused2) {
                 }
             }
+            // Re-attach active DEM overlays (domain outlines, contour polylines)
+            for (org.mapsforge.map.layer.Layer demLayer : o.demOverlayLayers) {
+                try {
+                    if (!u2Var.f3195a.contains(demLayer)) {
+                        u2Var.f3195a.add(demLayer, false);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            for (org.mapsforge.map.layer.overlay.Marker demMarker : AgpsApplication.f3580w) {
+                try {
+                    if (!u2Var.f3195a.contains(demMarker)) {
+                        u2Var.f3195a.add(demMarker, false);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
             u2Var.f3196b.release();
             f3051q = new CopyOnWriteArrayList<>();
             if (AgpsApplication.f3581y) {

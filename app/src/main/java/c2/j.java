@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.mapsforge.core.graphics.Bitmap;
+import org.mapsforge.core.model.LatLong;
+import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
+import org.mapsforge.map.layer.overlay.Marker;
+import org.mapsforge.map.layer.overlay.Polyline;
 
 /* JADX INFO: loaded from: classes.dex */
 public class j implements Callable<String> {
@@ -616,106 +621,71 @@ public class j implements Callable<String> {
         return "OK";
     }
 
-    public final void d(String str, int i7) {
-        org.mapsforge.map.layer.overlay.Polyline dVar;
-        boolean z;
-        int i8;
-        char c8;
-        boolean z7;
-        boolean z8 = true;
-        char c9 = 2;
-        org.mapsforge.core.graphics.Paint lVarA = n2.a(Color.argb(50, 50, 50, 50), 1, 2);
-        org.mapsforge.core.graphics.Paint lVarA2 = n2.a(Color.argb(100, 20, 20, 20), 2, 2);
-        int i9 = 0;
-        while (i9 < this.f3016b.size()) {
-            if (this.f3016b.get(i9).f3172b % 100 == 0) {
-                dVar = new org.mapsforge.map.layer.overlay.Polyline(lVarA2, org.mapsforge.map.android.graphics.AndroidGraphicFactory.INSTANCE);
-                z = z8;
-            } else {
-                dVar = new org.mapsforge.map.layer.overlay.Polyline(lVarA, org.mapsforge.map.android.graphics.AndroidGraphicFactory.INSTANCE);
-                z = false;
-            }
-            dVar.getLatLongs().clear();
-            for (int i10 = 0; i10 < this.f3016b.get(i9).f3171a.size(); i10++) {
-                dVar.getLatLongs().add(this.f3016b.get(i9).f3171a.get(i10));
-            }
-            if (z) {
-                int size = this.f3016b.get(i9).f3171a.size();
-                int i11 = 0;
-                double dAtan2 = 0.0d;
-                while (i11 < size - 1) {
-                    org.mapsforge.core.model.LatLong cVar3 = this.f3016b.get(i9).f3171a.get(i11);
-                    int i12 = i11 + 1;
-                    org.mapsforge.core.model.LatLong cVar4 = this.f3016b.get(i9).f3171a.get(i12);
-                    Objects.requireNonNull(cVar3);
-                    int i13 = i9;
-                    double radians = Math.toRadians(cVar4.latitude - cVar3.latitude);
-                    double radians2 = Math.toRadians(cVar4.longitude - cVar3.longitude);
-                    double d8 = radians / 2.0d;
-                    double dSin = Math.sin(d8) * Math.sin(d8);
-                    double dCos = Math.cos(Math.toRadians(cVar3.latitude));
-                    org.mapsforge.core.graphics.Paint lVar = lVarA2;
-                    org.mapsforge.core.graphics.Paint lVar2 = lVarA;
-                    double d9 = radians2 / 2.0d;
-                    double dSin2 = (Math.sin(d9) * Math.sin(d9) * Math.cos(Math.toRadians(cVar4.latitude)) * dCos) + dSin;
-                    dAtan2 += Math.atan2(Math.sqrt(dSin2), Math.sqrt(1.0d - dSin2)) * 2.0d * 6378137.0d;
-                    if (dAtan2 > 1000.0d) {
-                        i8 = i13;
-                        org.mapsforge.core.model.LatLong cVar6 = this.f3016b.get(i8).f3171a.get(i11);
-                        int i14 = (int) this.f3016b.get(i8).f3172b;
+    public final void d(String demName, int elevation) {
+        org.mapsforge.core.graphics.Paint minorContourPaint = n2.a(Color.argb(180, 140, 85, 45), 2, 2);
+        org.mapsforge.core.graphics.Paint majorContourPaint = n2.a(Color.argb(230, 80, 40, 20), 3, 2);
+        for (int i = 0; i < this.f3016b.size(); i++) {
+            t contour = this.f3016b.get(i);
+            boolean isMajor = (contour.f3172b % 100 == 0);
+            Polyline polyline = new Polyline(isMajor ? majorContourPaint : minorContourPaint, AndroidGraphicFactory.INSTANCE);
+            polyline.setPoints(contour.f3171a);
+            o.demOverlayLayers.add(polyline);
+            MainActivity.f3626n1.a(polyline);
+
+            if (isMajor) {
+                int pointCount = contour.f3171a.size();
+                int pointIdx = 0;
+                double accumulatedDistance = 0.0d;
+                while (pointIdx < pointCount - 1) {
+                    LatLong pt1 = contour.f3171a.get(pointIdx);
+                    int nextIdx = pointIdx + 1;
+                    LatLong pt2 = contour.f3171a.get(nextIdx);
+                    Objects.requireNonNull(pt1);
+                    double dLat = Math.toRadians(pt2.latitude - pt1.latitude);
+                    double dLon = Math.toRadians(pt2.longitude - pt1.longitude);
+                    double sinHalfLat = Math.sin(dLat / 2.0d);
+                    double sinHalfLon = Math.sin(dLon / 2.0d);
+                    double a = (sinHalfLat * sinHalfLat) + (sinHalfLon * sinHalfLon * Math.cos(Math.toRadians(pt1.latitude)) * Math.cos(Math.toRadians(pt2.latitude)));
+                    accumulatedDistance += Math.atan2(Math.sqrt(a), Math.sqrt(1.0d - a)) * 2.0d * 6378137.0d;
+                    if (accumulatedDistance > 1000.0d) {
+                        LatLong labelPosition = contour.f3171a.get(pointIdx);
+                        int altValue = (int) contour.f3172b;
                         Context context = this.f3018d;
-                        List<n> list = o.f3084p;
-                        String string = Integer.toString(i14);
+                        String altText = Integer.toString(altValue);
                         TextView textView = new TextView(context);
                         textView.setGravity(17);
-                        textView.setTextSize(8.0f);
-                        z7 = true;
+                        textView.setTextSize(9.0f);
                         textView.setTypeface(textView.getTypeface(), 1);
-                        textView.setText(string);
-                        org.mapsforge.core.graphics.Bitmap bVarB = n2.b(context, textView);
-                        c8 = 2;
-                        org.mapsforge.map.layer.overlay.Marker bVar = new org.mapsforge.map.layer.overlay.Marker(cVar6, bVarB, 0, (-bVarB.getHeight()) / 2);
-                        bVar.setVisible(false);
-                        bVar.requestRedraw();
-                        AgpsApplication.f3580w.add(bVar);
-                        MainActivity.f3626n1.a(bVar);
-                        dAtan2 = 0.0d;
-                    } else {
-                        i8 = i13;
-                        c8 = 2;
-                        z7 = true;
+                        textView.setTextColor(Color.rgb(80, 40, 20));
+                        textView.setText(altText);
+                        Bitmap labelBitmap = n2.b(context, textView);
+                        Marker altMarker = new Marker(labelPosition, labelBitmap, 0, (-labelBitmap.getHeight()) / 2);
+                        altMarker.setVisible(false);
+                        altMarker.requestRedraw();
+                        AgpsApplication.f3580w.add(altMarker);
+                        MainActivity.f3626n1.a(altMarker);
+                        accumulatedDistance = 0.0d;
                     }
-                    c9 = c8;
-                    lVarA = lVar2;
-                    z8 = z7;
-                    i11 = i12;
-                    lVarA2 = lVar;
-                    i9 = i8;
+                    pointIdx = nextIdx;
                 }
             }
-            MainActivity.f3626n1.a(dVar);
-            c9 = c9;
-            lVarA = lVarA;
-            z8 = z8;
-            i9++;
-            lVarA2 = lVarA2;
         }
     }
 
-    public final void e(String str, int i7) {
-        org.mapsforge.core.graphics.Paint lVarA = n2.a(Color.argb(100, 235, 235, 235), 1, 1);
-        for (int i8 = 0; i8 < this.f3016b.size(); i8++) {
-            org.mapsforge.map.layer.overlay.Polyline dVar = new org.mapsforge.map.layer.overlay.Polyline(lVarA, org.mapsforge.map.android.graphics.AndroidGraphicFactory.INSTANCE);
-            dVar.getLatLongs().clear();
-            dVar.getLatLongs().addAll(this.f3016b.get(i8).f3171a);
-            MainActivity.f3626n1.a(dVar);
+    public final void e(String demName, int elevation) {
+        org.mapsforge.core.graphics.Paint contourPaint = n2.a(Color.argb(200, 110, 65, 30), 2, 2);
+        for (int i = 0; i < this.f3016b.size(); i++) {
+            Polyline polyline = new Polyline(contourPaint, AndroidGraphicFactory.INSTANCE);
+            polyline.setPoints(this.f3016b.get(i).f3171a);
+            o.demOverlayLayers.add(polyline);
+            MainActivity.f3626n1.a(polyline);
         }
         StringBuilder sbA = android.support.v4.media.b.a("FINE CONTOUR ------------------>   dem Name=");
         boolean z = MainActivity.I0;
-        String[] strArrSplit = str.split("/");
+        String[] strArrSplit = demName.split("/");
         sbA.append(strArrSplit[strArrSplit.length - 1]);
         sbA.append(" Elevation=");
-        sbA.append(i7);
+        sbA.append(elevation);
         v2.e("GPS-M", sbA.toString());
     }
 }
