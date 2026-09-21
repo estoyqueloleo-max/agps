@@ -59,10 +59,22 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        community {
+            storeFile file("community.keystore")
+            storePassword System.getenv("KEYSTORE_PASS") ?: "agpstracker"
+            keyAlias System.getenv("KEY_ALIAS") ?: "community"
+            keyPassword System.getenv("KEY_PASS") ?: "agpstracker"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.community
+        }
+        debug {
+            signingConfig signingConfigs.community
         }
     }
 
