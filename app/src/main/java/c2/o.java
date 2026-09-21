@@ -84,48 +84,37 @@ public class o {
         long length = MainActivity.X(this.f3097n, "Dems/" + upperCase, 1).length();
         BoundingBox aVarA = a(upperCase);
         this.f3085a = "M";
-        boolean z = false;
-        if (length != 25934402) {
-            if (length == 2884802) {
-                this.f3087c = 1201;
-                this.f3088d = 1201;
+        if (length == 2884802) {
+            this.f3087c = 1201;
+            this.f3088d = 1201;
+        } else if (length > 0) {
+            int samples = (int) Math.round(Math.sqrt(length / 2.0d));
+            if (samples == 1201 || samples == 3601) {
+                this.f3087c = samples;
+                this.f3088d = samples;
+            } else {
+                this.f3087c = 3601;
+                this.f3088d = 3601;
             }
-            if (z) {
-                int i7 = (int) aVarA.minLongitude;
-                int i8 = (int) aVarA.maxLatitude;
-                int i9 = this.f3087c;
-                this.f3089e = 1.0d / ((double) i9);
-                this.f3090f = 1.0d / ((double) this.f3088d);
-                this.f3095k = i9 * 2;
-                this.m = Short.MIN_VALUE;
-                this.f3091g = i8;
-                this.f3092h = i8 - 1;
-                this.f3093i = i7 + 1;
-                this.f3094j = i7;
-                LatLong cVar = new LatLong(this.f3092h, this.f3094j);
-                LatLong cVar2 = new LatLong(this.f3091g, this.f3093i);
-                this.f3096l = new BoundingBox(cVar.latitude, cVar.longitude, cVar2.latitude, cVar2.longitude);
-            }
+        } else {
+            this.f3087c = 3601;
+            this.f3088d = 3601;
         }
-        this.f3087c = 3601;
-        this.f3088d = 3601;
-        z = true;
-        if (z) {
-            int i10 = (int) aVarA.minLongitude;
-            int i11 = (int) aVarA.maxLatitude;
-            int i12 = this.f3087c;
-            this.f3089e = 1.0d / ((double) i12);
-            this.f3090f = 1.0d / ((double) this.f3088d);
-            this.f3095k = i12 * 2;
-            this.m = Short.MIN_VALUE;
-            this.f3091g = i11;
-            this.f3092h = i11 - 1;
-            this.f3093i = i10 + 1;
-            this.f3094j = i10;
-            LatLong cVar3 = new LatLong(this.f3092h, this.f3094j);
-            LatLong cVar4 = new LatLong(this.f3091g, this.f3093i);
-            this.f3096l = new BoundingBox(cVar3.latitude, cVar3.longitude, cVar4.latitude, cVar4.longitude);
-        }
+
+        int minLongitude = (int) aVarA.minLongitude;
+        int maxLatitude = (int) aVarA.maxLatitude;
+        int sampleCount = this.f3087c;
+        this.f3089e = 1.0d / ((double) sampleCount);
+        this.f3090f = 1.0d / ((double) this.f3088d);
+        this.f3095k = sampleCount * 2;
+        this.m = Short.MIN_VALUE;
+        this.f3091g = maxLatitude;
+        this.f3092h = maxLatitude - 1;
+        this.f3093i = minLongitude + 1;
+        this.f3094j = minLongitude;
+        LatLong southWest = new LatLong(this.f3092h, this.f3094j);
+        LatLong northEast = new LatLong(this.f3091g, this.f3093i);
+        this.f3096l = new BoundingBox(southWest.latitude, southWest.longitude, northEast.latitude, northEast.longitude);
     }
 
     public static BoundingBox a(String str) {

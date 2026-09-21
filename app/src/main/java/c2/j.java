@@ -146,29 +146,19 @@ public class j implements Callable<String> {
         short s16 = 15;
         iArr[15] = 0;
         iArr2[15] = 0;
-        while (true) {
-            int i31 = s15;
-            int i32 = i31;
-            while (i32 < i23) {
-                int i33 = s15;
-                while (i33 < i24) {
-                    if (sArr2[i32][i33] != 0) {
-                        if (sArr2[i32][i33] != s16) {
-                            int i34 = i31 + 1;
-                            ArrayList arrayList = new ArrayList();
+        int outerPass = 0;
+        while (outerPass++ < 10) {
+            int i31 = 0;
+            for (int i32 = 0; i32 < i23; i32++) {
+                for (int i33 = 0; i33 < i24; i33++) {
+                    if (sArr2[i32][i33] != 0 && sArr2[i32][i33] != s16) {
                             int i35 = this.f3020f[sArr2[i32][i33]];
                             int i36 = this.f3021g[sArr2[i32][i33]];
                             if (i35 == 0) {
-                                arrayList = arrayList;
-                                i33 = i33;
-                                s13 = s13;
-                                s15 = s15;
-                                c9 = 4;
-                                c8 = 3;
-                                s16 = 15;
-                                i9 = i32;
-                                s8 = s14;
+                                sArr2[i32][i33] = 0;
                             } else {
+                                int i34 = i31 + 1;
+                                ArrayList arrayList = new ArrayList();
                                 if (i35 == i29 || i35 == i30) {
                                     int i37 = i33;
                                     i9 = i32;
@@ -196,7 +186,8 @@ public class j implements Callable<String> {
                                 int i39 = i10;
                                 int i40 = i9;
                                 short s17 = 0;
-                                while (true) {
+                                int traceSafety = 0;
+                                while (i38 != 0 && ++traceSafety < 100000) {
                                     if (i38 != 0) {
                                         if (i38 != s14) {
                                             if (i38 != s13) {
@@ -232,6 +223,7 @@ public class j implements Callable<String> {
                                                             s8 = 1;
                                                             s15 = 0;
                                                             sArr2[i12][i13] = 0;
+                                                            break;
                                                         } else {
                                                             i15 = i12;
                                                             i16 = i13;
@@ -304,10 +296,6 @@ public class j implements Callable<String> {
                                                     i14 = this.f3020f[sArr2[i12][i13]];
                                                     int i43 = this.f3021g[sArr2[i12][i13]];
                                                     if (i14 == 0) {
-                                                        if (i14 == 5) {
-                                                        }
-                                                        if (i12 > 0) {
-                                                        }
                                                         i33 = i10;
                                                         s13 = s13;
                                                         c9 = 4;
@@ -315,6 +303,7 @@ public class j implements Callable<String> {
                                                         s8 = 1;
                                                         s15 = 0;
                                                         sArr2[i12][i13] = 0;
+                                                        break;
                                                     }
                                                 }
                                             } else if (i39 < i24 - 1) {
@@ -325,10 +314,6 @@ public class j implements Callable<String> {
                                                 i14 = this.f3020f[sArr2[i12][i13]];
                                                 int i44 = this.f3021g[sArr2[i12][i13]];
                                                 if (i14 == 0) {
-                                                    if (i14 == 5) {
-                                                    }
-                                                    if (i12 > 0) {
-                                                    }
                                                     i33 = i10;
                                                     s13 = s13;
                                                     c9 = 4;
@@ -336,6 +321,7 @@ public class j implements Callable<String> {
                                                     s8 = 1;
                                                     s15 = 0;
                                                     sArr2[i12][i13] = 0;
+                                                    break;
                                                 }
                                             }
                                         } else if (i40 > 0) {
@@ -346,10 +332,6 @@ public class j implements Callable<String> {
                                             i14 = this.f3020f[sArr2[i12][i13]];
                                             int i45 = this.f3021g[sArr2[i12][i13]];
                                             if (i14 == 0) {
-                                                if (i14 == 5) {
-                                                }
-                                                if (i12 > 0) {
-                                                }
                                                 i33 = i10;
                                                 s13 = s13;
                                                 c9 = 4;
@@ -357,6 +339,7 @@ public class j implements Callable<String> {
                                                 s8 = 1;
                                                 s15 = 0;
                                                 sArr2[i12][i13] = 0;
+                                                break;
                                             }
                                         }
                                     }
@@ -367,45 +350,12 @@ public class j implements Callable<String> {
                                     c8 = 3;
                                     s15 = 0;
                                 }
+                                this.f3015a.add(arrayList);
+                                i31 = i34;
                             }
-                            this.f3015a.add(arrayList);
-                            i31 = i34;
-                        } else {
-                            c9 = 4;
                         }
-                        s14 = s8;
-                        c10 = c9;
-                        c8 = c8;
-                        i32 = i9;
-                        s16 = s16;
-                        i30 = 6;
-                        s15 = s15;
-                        i29 = 5;
-                        s13 = s13;
-                        i33++;
-                    } else {
-                        c9 = c10;
                     }
-                    i9 = i32;
-                    s8 = s14;
-                    s14 = s8;
-                    c10 = c9;
-                    c8 = c8;
-                    i32 = i9;
-                    s16 = s16;
-                    i30 = 6;
-                    s15 = s15;
-                    i29 = 5;
-                    s13 = s13;
-                    i33++;
                 }
-                s15 = s15;
-                i32++;
-                s16 = s16;
-                i30 = 6;
-                i29 = 5;
-                s13 = s13;
-            }
             short s18 = s16;
             short s19 = s13;
             short s20 = s14;
@@ -443,7 +393,8 @@ public class j implements Callable<String> {
                 short s7 = sArr[i10][i9];
                 short s8 = sArr[i10 + 1][i9];
                 double d13 = oVar.f3090f;
-                double d14 = (((double) (i7 - s7)) * d13) / ((double) (s8 - s7));
+                double denom = (double) (s8 - s7);
+                double d14 = (denom == 0.0d) ? (0.5d * d13) : ((((double) (i7 - s7)) * d13) / denom);
                 d8 = aVar.maxLatitude - (((double) i10) * d13);
                 d9 = d12;
                 dAbs2 = Math.abs(d14);
@@ -457,7 +408,9 @@ public class j implements Callable<String> {
                 short s9 = sArr2[i12];
                 short s10 = sArr[i11][i12 + 1];
                 double d16 = oVar2.f3089e;
-                dAbs = Math.abs((((double) (i7 - s9)) * d16) / ((double) (s10 - s9))) + (((double) i12) * d16) + aVar.minLongitude;
+                double denom = (double) (s10 - s9);
+                double frac = (denom == 0.0d) ? (0.5d * d16) : Math.abs((((double) (i7 - s9)) * d16) / denom);
+                dAbs = frac + (((double) i12) * d16) + aVar.minLongitude;
             } else if (i8 != 4) {
                 dAbs = 0.0d;
             } else {
@@ -469,7 +422,8 @@ public class j implements Callable<String> {
                 short s11 = sArr[i14][i13];
                 short s12 = sArr[i14 + 1][i13];
                 double d18 = oVar3.f3090f;
-                double d19 = (((double) (i7 - s11)) * d18) / ((double) (s12 - s11));
+                double denom = (double) (s12 - s11);
+                double d19 = (denom == 0.0d) ? (0.5d * d18) : ((((double) (i7 - s11)) * d18) / denom);
                 d8 = aVar.maxLatitude - (((double) i14) * d18);
                 dAbs2 = Math.abs(d19);
             }
@@ -487,9 +441,19 @@ public class j implements Callable<String> {
             short s13 = sArr3[i16];
             short s14 = sArr[i15][i16 + 1];
             double d22 = oVar4.f3089e;
-            dAbs = Math.abs((((double) (i7 - s13)) * d22) / ((double) (s14 - s13))) + (((double) i16) * d22) + aVar.minLongitude;
+            double denom = (double) (s14 - s13);
+            double frac = (denom == 0.0d) ? (0.5d * d22) : Math.abs((((double) (i7 - s13)) * d22) / denom);
+            dAbs = frac + (((double) i16) * d22) + aVar.minLongitude;
             d10 = d21;
         }
+        if (Double.isNaN(d10) || Double.isInfinite(d10)) {
+            d10 = aVar.minLatitude;
+        }
+        if (Double.isNaN(dAbs) || Double.isInfinite(dAbs)) {
+            dAbs = aVar.minLongitude;
+        }
+        d10 = Math.max(-90.0d, Math.min(90.0d, d10));
+        dAbs = Math.max(-180.0d, Math.min(180.0d, dAbs));
         return new org.mapsforge.core.model.LatLong(d10, dAbs);
     }
 
@@ -614,7 +578,9 @@ public class j implements Callable<String> {
             } catch (Exception unused2) {
             }
         } catch (IOException e8) {
-            MainActivity.f3625m1.a("showWindowIsolines:" + e8);
+            if (MainActivity.f3625m1 != null) {
+                MainActivity.f3625m1.a("showWindowIsolines:" + e8);
+            }
         }
         o.c(15);
         v2.e("GPS-M", "Contour Task ended");
