@@ -248,6 +248,6 @@ flowchart LR
 - [ ] **Creative Milestone 2:** Serverless P2P networking bridge (P2PT / WebRTC)
 - [ ] **Creative Milestone 3:** Outdoor Tron Lightcycle & GPS Maze prototypes
 
-### 🛡️ Track C: Quality & Testing (41 Automated Tests Passing)
+### 🛡️ Track C: Quality & Testing (46 Automated Tests Passing)
 - [x] **QA Milestones 1–4:** Automated test harness (JUnit 4 + Mockito + Robolectric), GPX parsing, DEM contours, service leak fix, visual tile render tests (`testDebugUnitTest`).
 - [ ] **QA Milestone 6:** Espresso UI smoke test suite for core user journeys (requires device/emulator).

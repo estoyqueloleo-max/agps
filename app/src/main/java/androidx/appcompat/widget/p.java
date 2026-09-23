@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
-import android.view.ViewParent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import com.giobat.AgpsTrackerPP.MainActivity;
@@ -13,79 +12,48 @@ import java.util.Locale;
 /* JADX INFO: loaded from: classes.dex */
 public class p {
 
+    public static final String GITHUB_PAGES_BASE_URL = "https://estoyqueloleo-max.github.io/agps/";
+    public static final String OPENANDROMAPS_URL = "https://openandromaps.org/en/downloads";
+
     public p() {
     }
 
     public static int b() {
-        byte b8;
         String language = Locale.getDefault().getLanguage();
-        int iHashCode = language.hashCode();
-        if (iHashCode != 3241) {
-            if (iHashCode != 3246) {
-                if (iHashCode != 3276) {
-                    if (iHashCode != 3371) {
-                        if (iHashCode != 3588) {
-                            if (iHashCode == 3651 && language.equals("ru")) {
-                                b8 = 3;
-                            } else {
-                                b8 = -1;
-                            }
-                        } else if (language.equals("pt")) {
-                            b8 = 4;
-                        } else {
-                            b8 = -1;
-                        }
-                    } else if (language.equals("it")) {
-                        b8 = 0;
-                    } else {
-                        b8 = -1;
-                    }
-                } else if (language.equals("fr")) {
-                    b8 = 2;
-                } else {
-                    b8 = -1;
-                }
-            } else if (language.equals("es")) {
-                b8 = 1;
-            } else {
-                b8 = -1;
-            }
-        } else if (language.equals("en")) {
-            b8 = 5;
-        } else {
-            b8 = -1;
-        }
-        if (b8 == 0) {
+        if ("it".equalsIgnoreCase(language)) {
             return 2;
         }
-        if (b8 == 1) {
+        if ("es".equalsIgnoreCase(language)) {
             return 3;
         }
-        if (b8 == 2) {
+        if ("fr".equalsIgnoreCase(language)) {
             return 4;
         }
-        if (b8 != 3) {
-            return b8 != 4 ? 1 : 7;
+        if ("ru".equalsIgnoreCase(language)) {
+            return 5;
         }
-        return 5;
+        if ("pt".equalsIgnoreCase(language)) {
+            return 7;
+        }
+        return 1;
     }
 
-    public static String c(int i7) {
-        if (i7 == 0) {
+    public static String c(int languageCode) {
+        if (languageCode == 0) {
             return "";
         }
-        int i8 = i7 - 1;
-        if (i8 == 1) {
+        int languageIndex = languageCode - 1;
+        if (languageIndex == 1) {
             return "_it";
         }
-        if (i8 == 2) {
+        if (languageIndex == 2) {
             return "_es";
         }
-        if (i8 == 3) {
+        if (languageIndex == 3) {
             return "_fr";
         }
-        if (i8 != 4) {
-            return i8 != 6 ? "" : "_pt";
+        if (languageIndex != 4) {
+            return languageIndex != 6 ? "" : "_pt";
         }
         return "_ru";
     }
@@ -94,24 +62,52 @@ public class p {
         return inputConnection;
     }
 
-    public static void f(View view, float f7) {
-        view.setElevation(f7);
+    public static void f(View view, float elevation) {
+        view.setElevation(elevation);
     }
 
-    public void e(Context context, String str) {
-        try {
-            context.startActivity(new Intent("android.intent.action.VIEW", Uri.parse(str)));
-        } catch (Exception e8) {
-            MainActivity.f3625m1.a("openUrlInBrowser error:" + e8);
+    public static String resolveDocumentationUrl(int targetPageCode) {
+        return resolveDocumentationUrl(targetPageCode, Locale.getDefault().getLanguage());
+    }
+
+    public static String resolveDocumentationUrl(int targetPageCode, String languageCode) {
+        String languageSuffix = "";
+        if ("es".equalsIgnoreCase(languageCode)) {
+            languageSuffix = "_es";
+        } else if ("it".equalsIgnoreCase(languageCode)) {
+            languageSuffix = "_it";
+        }
+
+        switch (targetPageCode) {
+            case 3: // Help/Info (Offline Maps & DEM user guide)
+                return GITHUB_PAGES_BASE_URL + "help" + languageSuffix + ".html";
+            case 2: // Overview & Features
+                return GITHUB_PAGES_BASE_URL + "index" + languageSuffix + ".html";
+            case 4: // OpenAndroMaps downloads
+                return OPENANDROMAPS_URL;
+            case 5: // Storage help (legacy Android)
+            case 6: // Scoped Storage help (Android 10+)
+                return GITHUB_PAGES_BASE_URL + "help" + languageSuffix + ".html#geographic_maps";
+            default:
+                return GITHUB_PAGES_BASE_URL;
         }
     }
 
-    public p(Context context, int i7) {
+    public void e(Context context, String url) {
+        try {
+            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (Exception e) {
+            MainActivity.f3625m1.a("openUrlInBrowser error:" + e);
+        }
+    }
+
+    public p(Context context, int targetPageCode) {
         b();
         try {
-            e(context, i7 == 3 ? "https://agps-tracker.com/wp/?page_id=952" : i7 == 2 ? "https://agps-tracker.com/wp/?page_id=856&lang=en#video" : i7 == 4 ? "https://openandromaps.org/en/downloads" : i7 == 5 ? "https://agps-tracker.com/wp/?page_id=1343&lang=en" : i7 == 6 ? "https://agps-tracker.com/wp/?page_id=1349&lang=en" : "");
-        } catch (Exception e8) {
-            d0.c("CallBrowser: ", e8, MainActivity.f3625m1);
+            String targetUrl = resolveDocumentationUrl(targetPageCode);
+            e(context, targetUrl);
+        } catch (Exception e) {
+            d0.c("CallBrowser: ", e, MainActivity.f3625m1);
         }
     }
 }
