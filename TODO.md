@@ -1,30 +1,11 @@
-# 🗺️ A-GPS Tracker++ (Community) — Roadmap & Active Tracking
+# 🗺️ A-GPS Tracker++ (Community) — Creative Roadmap & Reference
 
-This document tracks future evolution ideas and references all active engineering milestones managed via **GitHub Issues**.
-
----
-
-## 📌 Active Milestones & GitHub Issues
-
-All technical development, bug fixes, and core refactoring are tracked as GitHub Issues:
-
-| Issue | Title | Type | Status |
-|---|---|---|---|
-| [#1](https://github.com/estoyqueloleo-max/agps/issues/1) | Review drawing of DEMS | Investigation | Open |
-| [#2](https://github.com/estoyqueloleo-max/agps/issues/2) | Recover website and documentation (multi-language & contrast) | Documentation | PR [#11](https://github.com/estoyqueloleo-max/agps/pull/11) |
-| [#4](https://github.com/estoyqueloleo-max/agps/issues/4) | Think about an automatic updater for libraries | Enhancement | Open |
-| [#5](https://github.com/estoyqueloleo-max/agps/issues/5) | Fix double-tap to import route in file browser | Bug | Open |
-| [#6](https://github.com/estoyqueloleo-max/agps/issues/6) | Elevation profile downsampling for long routes (>10,000 pts) | Enhancement | Open |
-| [#7](https://github.com/estoyqueloleo-max/agps/issues/7) | Selective core deobfuscation: `IntServLocGpsPP` and `MainActivity` | Architecture | Open |
-| [#8](https://github.com/estoyqueloleo-max/agps/issues/8) | Improve map viewport loading and dynamic zoom level clamping | Performance | Open |
-| [#9](https://github.com/estoyqueloleo-max/agps/issues/9) | Evaluate public DEM mirrors (NASA Earthdata, USGS, Viewfinder) | Infrastructure | Open |
-| [#10](https://github.com/estoyqueloleo-max/agps/issues/10) | i18n audit: standardize English base strings and complete translations | i18n | Open |
-| [#12](https://github.com/estoyqueloleo-max/agps/issues/12) | Modernize Android lifecycle and background location permission flow (Android 14+) | Architecture | Open |
-| [#13](https://github.com/estoyqueloleo-max/agps/issues/13) | Expand automated test coverage: GPX/DEM unit tests, service lifecycle, and Espresso UI smoke suite | QA / Testing | Open |
+> [!TIP]
+> All technical development, bug fixes, and engineering tasks are tracked directly in [GitHub Issues](https://github.com/estoyqueloleo-max/agps/issues).
 
 ---
 
-## 💡 Part 2: Creative Concepts (Future Evolution Forks)
+## 💡 Creative Concepts (Future Evolution Forks)
 
 > [!NOTE]
 > To keep this main repository as the **rock-solid, stable community revival**, experimental concepts (Tron, Mazes, P2P gaming) will be developed in dedicated forks.
