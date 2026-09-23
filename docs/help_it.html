@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AGPS-TrackerOm Guida/Info — A-GPS Tracker</title>
+    <link rel="stylesheet" id="wp-block-library-css" href="assets/css/style.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="wep-app-google-fonts-css" href="https://fonts.googleapis.com/css?family=Mulish:300,400,600,700&display=swap" type="text/css" media="all" />
+    <link rel="stylesheet" id="owl-carousel-css-css" href="assets/css/owl.carousel.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="owl-theme-css-css" href="assets/css/owl.theme.default.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="font-awesome-css" href="assets/css/font-awesome.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="meanmenu-css-css" href="assets/css/meanmenu.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="web-app-style-css" href="assets/css/style.css" type="text/css" media="all" />
+    <script type="text/javascript" src="assets/js/jquery.min.js" id="jquery-core-js"></script>
+    <script type="text/javascript" src="assets/js/jquery-migrate.min.js" id="jquery-migrate-js"></script>
+    <link rel="stylesheet" id="custom-high-contrast-css" href="assets/css/custom.css" type="text/css" media="all" />
+</head>
+
+<body class="page-template-default page custom-background wp-custom-logo no-sidebar box-layout">
+
+<div id="community-banner" style="background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: #fff; padding: 10px 15px; font-size: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
+    <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; max-width: 1140px; margin: 0 auto;">
+        <span><strong>A-GPS Tracker++ Community Edition</strong> — Progetto di preservazione open source</span>
+        <span style="margin-top: 4px;">
+            <a href="https://github.com/estoyqueloleo-max/agps" target="_blank" style="color: #ffd700; text-decoration: none; font-weight: bold; margin-right: 15px;"><i class="fa fa-github"></i> Repository GitHub</a>
+            <a href="https://github.com/estoyqueloleo-max/agps/releases" target="_blank" style="background: #28a745; color: #fff; padding: 4px 10px; border-radius: 4px; text-decoration: none; font-weight: bold;"><i class="fa fa-download"></i> Scarica APK</a>
+        </span>
+    </div>
+</div>
+
+<div id="page" class="site">
+    <a class="skip-link screen-reader-text" href="#content">Vai al contenuto</a>
+
+    <header id="masthead" class="site-header">
+        <div class="hgroup-wrap">
+            <div class="container">
+                <section class="site-branding">
+                    <a href="index_it.html" class="custom-logo-link" rel="home"><img width="64" height="64" src="assets/images/cropped-logo64.png" class="custom-logo" alt="AGPS Tracker" /></a>
+                    <p class="site-description">AGPS Tracker</p>                    
+                </section>
+
+                <div class="hgroup-right">
+                    <div id="navbar" class="navbar">
+                        <nav id="site-navigation" class="navigation main-navigation">
+                            <div class="menu-content-wrapper">
+                                <ul id="menu-principale" class="menu">
+                                    <li class="menu-item"><a href="index_it.html">Caratteristiche Generali</a></li>
+                                    <li class="menu-item current-menu-item"><a href="help_it.html">AGPS-TrackerOm (Mappe Offline e DEM)</a></li>
+                                    <li class="menu-item"><a href="https://github.com/estoyqueloleo-max/agps" target="_blank"><i class="fa fa-github"></i> GitHub</a></li>
+                                    <li class="menu-item"><a href="https://github.com/estoyqueloleo-max/agps/releases" target="_blank" style="color: #28a745; font-weight: bold;"><i class="fa fa-download"></i> Releases</a></li>
+                                    <li class="menu-item"><div class="lang-switch-box"><a href="help.html">EN</a><a href="help_es.html">ES</a><a href="help_it.html" class="active-lang">IT</a><a href="help_fr.html">FR</a><a href="help_pt.html">PT</a><a href="help_ru.html">RU</a></div></li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>      
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="content" class="site-content">
+        <div class="container">
+            <div class="row">   
+                <div id="primary" class="content-area custom-col-8">
+                    <main id="main" class="site-main">
+                        <article id="post-952" class="post-952 page type-page status-publish hentry">
+                            <header class="entry-header">
+                                <h1 class="entry-title">AGPS-TrackerOm — Guida e Informazioni</h1>
+                            </header>
+
+                            <div class="entry-content">
+                                <p style="text-align: left;">Questa pagina descrive le funzionalità avanzate introdotte da <strong>AGPS-TrackerOm</strong> (mappe offline e curve di livello). Le caratteristiche comuni di tracciamento e navigazione sono descritte nella pagina <a href="index_it.html">Caratteristiche Generali</a>.</p>
+
+                                <h4>► <a href="#geo_maps">Mappe Geografiche Offline</a></h4>
+                                <h4>► <a href="#contour_lines">Curve di Livello (Isoipse)</a></h4>
+                                <h4>► <a href="#elevation">Altitudine e Modelli DEM</a></h4>
+                                <h4>► <a href="#gpx_editor">Modifica Tracce GPX</a></h4>
+                                <h4>► <a href="#credits">Crediti e Risorse</a></h4>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="geo_maps">Mappe Geografiche Offline</h4>
+                                <p>Le mappe geografiche utilizzate da AGPS-TrackerOm sono mappe vettoriali offline, gratuite e mantenute dal progetto <a href="https://www.openstreetmap.org">OpenStreetMap</a> (© collaboratori di OpenStreetMap). Queste mappe sono compresse in file con estensione <code>.map</code> e possono essere scaricate direttamente all'interno dell'applicazione.</p>
+
+                                <p><img loading="lazy" class="aligncenter wp-image-1027" src="assets/images/doppio-945x1024.png" alt="Mappe Offline" width="477" height="517" /></p>
+
+                                <p>Al primo avvio dell'app il tuo archivio locale è vuoto e sarai invitato a selezionare e scaricare la mappa della tua regione o nazione.</p>
+
+                                <p>Per scaricare altre mappe puoi usare il menu <img loading="lazy" src="assets/images/image.png" alt="Download Mappe" width="24" height="24" /> <strong>Download Mappe</strong>. Potrai navigare nelle cartelle geografiche per trovare l'area desiderata. Toccando la mappa, il download inizierà in background. Puoi visualizzare e gestire tutte le tue mappe scaricate tramite il menu <img loading="lazy" src="assets/images/map_icon.png" alt="Le Tue Mappe" width="24" height="24" /> <strong>Le Tue Mappe</strong>.</p>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="contour_lines">Curve di Livello (Isoipse)</h4>
+                                <p>Le curve di livello vengono generate automaticamente da AGPS-TrackerOm tenendo premuto un punto qualsiasi della mappa. Sono calcolate a partire dai dati di elevazione digitale (DEM) forniti dalla NASA, con una precisione di un punto ogni 30 metri.</p>
+
+                                <p><img loading="lazy" class="wp-image-1022 aligncenter" src="assets/images/screenshotMusine-473x1024.png" alt="Curve di livello" width="384" height="831" /></p>
+
+                                <p>Tenendo premuto un punto della mappa per il quale hai già scaricato il file DEM, vedrai le curve di livello disegnate immediatamente attorno all'area toccata. Se non hai ancora il DEM corrispondente, l'app ti proporrà di scaricarlo.</p>
+
+                                <p>I file DEM hanno estensione <code>.hgt</code> e coprono coordinate geografiche specifiche (ad esempio <code>N44E008.hgt</code> copre da 44° a 45° Nord e da 8° a 9° Est). Puoi visualizzare la copertura dei tuoi DEM sulla mappa usando il pulsante <img loading="lazy" src="assets/images/demsDomain.png" alt="Domini DEM" width="24" height="24" /> <strong>Domini DEM</strong>.</p>
+
+                                <figure class="wp-block-image size-large"><img loading="lazy" class="wp-image-1017 aligncenter" src="assets/images/screenshorDems-473x1024.png" alt="Copertura DEM" width="438" height="948" /></figure>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="elevation">Altitudine e Modelli DEM</h4>
+                                <p>L'altitudine fornita dai satelliti GPS è solitamente il dato più soggetto a imprecisioni e variazioni impreviste. I file DEM offrono un metodo alternativo, molto più stabile e preciso per determinare la quota altimetrica a partire dalla posizione orizzontale.</p>
+                                <p>AGPS-TrackerOm lavora di default in modalità <strong>Auto</strong>: se è presente un file DEM per la zona, l'altitudine viene calcolata tramite interpolazione DEM; altrimenti, viene impiegata quella GPS. Nelle Impostazioni puoi scegliere se utilizzare solo GPS, solo DEM o entrambi.</p>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="gpx_editor">Modifica Tracce GPX</h4>
+                                <p>Una traccia GPX salvata nel tuo archivio può essere modificata in vari modi:</p>
+                                <ol>
+                                    <li><strong>Unire due tracce</strong>: Carica la prima traccia e aggiungine un'altra per creare un percorso unico continuo.</li>
+                                    <li><strong>Modificare o Eliminare Punti di Interesse (POI / Waypoint)</strong>: Tieni premuto un POI per modificarne il nome, la descrizione o eliminarlo.</li>
+                                    <li><strong>Aggiungere nuovi POI</strong>: Assegnati a un punto della mappa o direttamente lungo la traccia.</li>
+                                    <li><strong>Salva</strong>: Salva il percorso finale in un nuovo file GPX.</li>
+                                </ol>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="credits">Crediti</h4>
+                                <p>Questa applicazione impiega risorse open source di grande valore:</p>
+                                <ul>
+                                    <li><strong>Mappe Geografiche</strong>: <a href="https://www.openstreetmap.org">OpenStreetMap</a> (© Collaboratori di OpenStreetMap).</li>
+                                    <li><strong>Modelli Digitali di Elevazione</strong>: Missioni SRTM della NASA e USGS EROS Data Center.</li>
+                                    <li><strong>Libreria mappe</strong>: <a href="https://github.com/mapsforge/mapsforge">Mapsforge API</a>.</li>
+                                    <li><strong>Tema cartografico Elevate</strong>: Sviluppato da Tobias Kühn (<a href="https://www.openandromaps.org">OpenAndroMaps</a>).</li>
+                                </ul>
+                            </div>
+                        </article>
+                    </main>
+                </div>
+            </div>  
+        </div>
+    </div>
+
+    <footer id="colophon" class="site-footer">
+        <div class="footer-address-info">
+            <div class="container">
+                <div class="footer-address-wrap">
+                    <section id="polylang-22" class="widget widget_polylang">
+                        <h2 class="widget-title">Altre Lingue:</h2>
+                        <ul>
+                            <li class="lang-item lang-item-en"><a lang="en" hreflang="en" href="help.html">English</a></li>
+                            <li class="lang-item lang-item-8 lang-item-es"><a lang="es-ES" hreflang="es-ES" href="help_es.html">Español</a></li>
+                            <li class="lang-item lang-item-18 lang-item-it current-lang"><a lang="it-IT" hreflang="it-IT" href="help_it.html">Italiano</a></li>
+                            <li class="lang-item lang-item-13 lang-item-fr"><a lang="fr-FR" hreflang="fr-FR" href="help_fr.html">Français</a></li>
+                            <li class="lang-item lang-item-33 lang-item-pt"><a lang="pt-BR" hreflang="pt-BR" href="help_pt.html">Português do Brasil</a></li>
+                            <li class="lang-item lang-item-28 lang-item-ru"><a lang="ru-RU" hreflang="ru-RU" href="help_ru.html">Русский</a></li>
+                        </ul>
+                    </section>  
+                </div>
+            </div>
+        </div>
+        <div class="site-info" style="text-align: center;">
+            <p>A-GPS Tracker++ Community Revival Edition — Documentazione Open Source</p>
+        </div>
+    </footer>
+</div>
+</body>
+</html>

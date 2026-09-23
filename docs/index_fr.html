@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A-GPS Tracker — Fonctionnalités et Guide Général</title>
+    <link rel="stylesheet" id="wp-block-library-css" href="assets/css/style.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="wep-app-google-fonts-css" href="https://fonts.googleapis.com/css?family=Mulish:300,400,600,700&display=swap" type="text/css" media="all" />
+    <link rel="stylesheet" id="owl-carousel-css-css" href="assets/css/owl.carousel.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="owl-theme-css-css" href="assets/css/owl.theme.default.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="font-awesome-css" href="assets/css/font-awesome.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="meanmenu-css-css" href="assets/css/meanmenu.css" type="text/css" media="all" />
+    <link rel="stylesheet" id="web-app-style-css" href="assets/css/style.css" type="text/css" media="all" />
+    <script type="text/javascript" src="assets/js/jquery.min.js" id="jquery-core-js"></script>
+    <script type="text/javascript" src="assets/js/jquery-migrate.min.js" id="jquery-migrate-js"></script>
+    <link rel="stylesheet" id="custom-high-contrast-css" href="assets/css/custom.css" type="text/css" media="all" />
+</head>
+
+<body class="home page-template-default page custom-background wp-custom-logo no-sidebar box-layout">
+
+<div id="community-banner" style="background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: #fff; padding: 10px 15px; font-size: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
+    <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; max-width: 1140px; margin: 0 auto;">
+        <span><strong>A-GPS Tracker++ Community Edition</strong> — Projet de préservation open source</span>
+        <span style="margin-top: 4px;">
+            <a href="https://github.com/estoyqueloleo-max/agps" target="_blank" style="color: #ffd700; text-decoration: none; font-weight: bold; margin-right: 15px;"><i class="fa fa-github"></i> Dépôt GitHub</a>
+            <a href="https://github.com/estoyqueloleo-max/agps/releases" target="_blank" style="background: #28a745; color: #fff; padding: 4px 10px; border-radius: 4px; text-decoration: none; font-weight: bold;"><i class="fa fa-download"></i> Télécharger APK</a>
+        </span>
+    </div>
+</div>
+
+<div id="page" class="site">
+    <a class="skip-link screen-reader-text" href="#content">Passer au contenu</a>
+
+    <header id="masthead" class="site-header">
+        <div class="hgroup-wrap">
+            <div class="container">
+                <section class="site-branding">
+                    <a href="index_fr.html" class="custom-logo-link" rel="home"><img width="64" height="64" src="assets/images/cropped-logo64.png" class="custom-logo" alt="AGPS Tracker" /></a>
+                    <p class="site-description">AGPS Tracker</p>                    
+                </section>
+
+                <div class="hgroup-right">
+                    <div id="navbar" class="navbar">
+                        <nav id="site-navigation" class="navigation main-navigation">
+                            <div class="menu-content-wrapper">
+                                <ul id="menu-principal" class="menu">
+                                    <li class="menu-item current-menu-item"><a href="index_fr.html">Fonctionnalités Générales</a></li>
+                                    <li class="menu-item"><a href="help_fr.html">AGPS-TrackerOm (Cartes Hors-ligne et DEM)</a></li>
+                                    <li class="menu-item"><a href="https://github.com/estoyqueloleo-max/agps" target="_blank"><i class="fa fa-github"></i> GitHub</a></li>
+                                    <li class="menu-item"><a href="https://github.com/estoyqueloleo-max/agps/releases" target="_blank" style="color: #28a745; font-weight: bold;"><i class="fa fa-download"></i> Releases</a></li>
+                                    <li class="menu-item"><div class="lang-switch-box"><a href="index.html">EN</a><a href="index_es.html">ES</a><a href="index_it.html">IT</a><a href="index_fr.html" class="active-lang">FR</a><a href="index_pt.html">PT</a><a href="index_ru.html">RU</a></div></li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>      
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="content" class="site-content">
+        <div class="container">
+            <div class="row">   
+                <div id="primary" class="content-area custom-col-8">
+                    <main id="main" class="site-main">
+                        <article id="post-6" class="post-6 page type-page status-publish hentry">
+                            <header class="entry-header">
+                                <h1 class="entry-title">A-GPS Tracker — Guide et Fonctionnalités</h1>
+                            </header>
+
+                            <div class="entry-content">
+                                <h4>► <a href="#qu-est-ce-que-c-est">Qu'est-ce que l'application A-GPS Tracker ?</a></h4>
+                                <h4>► <a href="#fonctionnalites">Fonctionnalités Clés</a></h4>
+                                <h4>► <a href="#performances">Performances et Précision A-GPS</a></h4>
+                                <h4>► <a href="#fichiers-gpx">Traces et Fichiers GPX</a></h4>
+                                <h4>► <a href="#commandes">Boutons de Contrôle</a></h4>
+                                <h4>► <a href="#depannage">Dépannage (Batterie et Stockage)</a></h4>
+                                <h4>► <a href="#credits">Crédits</a></h4>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="qu-est-ce-que-c-est">Qu'est-ce que l'application A-GPS Tracker ?</h4>
+                                <p><strong>A-GPS Tracker</strong> gère votre position géographique et votre altitude en utilisant les capacités du récepteur GPS et des données d'assistance (A-GPS) de votre smartphone. Une fois l'enregistrement démarré, l'application suit votre itinéraire en continu, même lorsque l'écran est éteint ou que vous utilisez d'autres applications.</p>
+                                <p>Elle est particulièrement conçue pour les <strong>randonneurs, marcheurs et cyclotouristes</strong> qui souhaitent enregistrer un parcours, suivre un tracé existant ou, surtout, <strong>ne pas se perdre sur le chemin du retour</strong>.</p>
+                                <p>Pour la cartographie hors-ligne et les modèles d'élévation, consultez le guide <a href="help_fr.html">AGPS-TrackerOm (Cartes Hors-ligne et DEM)</a>.</p>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="fonctionnalites">Fonctionnalités Clés</h4>
+                                <p>Données affichées en temps réel :</p>
+                                <ul>
+                                    <li><strong>Altitude orthométrique</strong> : exprimée en mètres par rapport au niveau moyen de la mer (géoïde), bien plus précise que la hauteur ellipsoïdale WGS84 brute.</li>
+                                    <li><strong>Coordonnées</strong> : en degrés décimaux et en projection cartographique <a href="https://fr.wikipedia.org/wiki/Transverse_universelle_de_Mercator">UTM-WGS84</a>.</li>
+                                    <li><strong>Traces sur Carte</strong> : affichées, enregistrées et exportables au format standard GPX.</li>
+                                    <li><strong>Points d'Intérêt (POI / Waypoints)</strong> : ajout de repères avec titre et description.</li>
+                                    <li><strong>Profil Altimétrique</strong> : graphique élévation / distance en temps réel.</li>
+                                    <li><strong>Statistiques</strong> : temps de marche effectif, vitesse moyenne, dénivelé positif et négatif.</li>
+                                </ul>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="performances">Performances et Précision A-GPS</h4>
+                                <p>Pour une précision maximale :</p>
+                                <ul>
+                                    <li>Activez le mode <strong>Haute Précision</strong> (GPS, réseaux mobiles et Wi-Fi).</li>
+                                    <li>En extérieur, le premier fix est obtenu en moins d'une minute grâce aux éphémérides assistées.</li>
+                                    <li>En pleine montagne sans réseau cellulaire, le récepteur GPS autonome continue de fonctionner parfaitement.</li>
+                                </ul>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="fichiers-gpx">Traces et Fichiers GPX</h4>
+                                <p>Les itinéraires sont enregistrés au format ouvert <strong>GPX (GPS Exchange Format)</strong>, compatible avec toutes les applications (Visorando, Wikiloc, Strava, Garmin).</p>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="commandes">Boutons de Contrôle</h4>
+                                <ul>
+                                    <li><img loading="lazy" src="assets/images/doc_rec.png" alt="Enregistrer" width="24" height="24" /> <strong>Enregistrer</strong> : démarre ou met en pause l'enregistrement.</li>
+                                    <li><img loading="lazy" src="assets/images/doc_waypoint.png" alt="POI" width="24" height="24" /> <strong>Ajouter POI</strong> : crée un waypoint à votre position.</li>
+                                    <li><img loading="lazy" src="assets/images/doc_compass.png" alt="Boussole" width="24" height="24" /> <strong>Orientation</strong> : nord en haut ou orientation direction de marche.</li>
+                                    <li><img loading="lazy" src="assets/images/graph2.png" alt="Graphique" width="24" height="24" /> <strong>Profil</strong> : affiche le profil altimétrique.</li>
+                                </ul>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="depannage">Dépannage (Batterie et Stockage)</h4>
+                                <p>Sous les versions récentes d'Android (Android 10+) :</p>
+                                <ul>
+                                    <li>Désactivez l'<strong>optimisation de la batterie</strong> pour A-GPS Tracker.</li>
+                                    <li>Accordez l'autorisation de localisation <strong>"Toujours autoriser"</strong>.</li>
+                                    <li>Créez et sélectionnez un dossier persistant dédié (nom suggéré : <code>AGPS-Tracker</code>).</li>
+                                </ul>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="credits">Crédits</h4>
+                                <p>A-GPS Tracker a été conçu à l'origine par <strong>Giobat</strong> et est désormais préservé par la communauté open source.</p>
+                            </div>
+                        </article>
+                    </main>
+                </div>
+            </div>  
+        </div>
+    </div>
+
+    <footer id="colophon" class="site-footer">
+        <div class="footer-address-info">
+            <div class="container">
+                <div class="footer-address-wrap">
+                    <section id="polylang-22" class="widget widget_polylang">
+                        <h2 class="widget-title">Autres Langues :</h2>
+                        <ul>
+                            <li class="lang-item lang-item-en"><a lang="en" hreflang="en" href="index.html">English</a></li>
+                            <li class="lang-item lang-item-8 lang-item-es"><a lang="es-ES" hreflang="es-ES" href="index_es.html">Español</a></li>
+                            <li class="lang-item lang-item-18 lang-item-it"><a lang="it-IT" hreflang="it-IT" href="index_it.html">Italiano</a></li>
+                            <li class="lang-item lang-item-13 lang-item-fr current-lang"><a lang="fr-FR" hreflang="fr-FR" href="index_fr.html">Français</a></li>
+                            <li class="lang-item lang-item-33 lang-item-pt"><a lang="pt-BR" hreflang="pt-BR" href="index_pt.html">Português do Brasil</a></li>
+                            <li class="lang-item lang-item-28 lang-item-ru"><a lang="ru-RU" hreflang="ru-RU" href="index_ru.html">Русский</a></li>
+                        </ul>
+                    </section>  
+                </div>
+            </div>
+        </div>
+        <div class="site-info" style="text-align: center;">
+            <p>A-GPS Tracker++ Community Revival Edition — Documentation Open Source</p>
+        </div>
+    </footer>
+</div>
+</body>
+</html>
