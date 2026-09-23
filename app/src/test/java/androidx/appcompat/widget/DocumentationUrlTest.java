@@ -38,6 +38,36 @@ public class DocumentationUrlTest {
     }
 
     @Test
+    public void testFrenchDocumentationUrls() {
+        assertEquals("https://estoyqueloleo-max.github.io/agps/help_fr.html",
+                p.resolveDocumentationUrl(3, "fr"));
+        assertEquals("https://estoyqueloleo-max.github.io/agps/index_fr.html",
+                p.resolveDocumentationUrl(2, "fr"));
+        assertEquals("https://estoyqueloleo-max.github.io/agps/help_fr.html#geographic_maps",
+                p.resolveDocumentationUrl(5, "fr-FR"));
+    }
+
+    @Test
+    public void testPortugueseDocumentationUrls() {
+        assertEquals("https://estoyqueloleo-max.github.io/agps/help_pt.html",
+                p.resolveDocumentationUrl(3, "pt"));
+        assertEquals("https://estoyqueloleo-max.github.io/agps/index_pt.html",
+                p.resolveDocumentationUrl(2, "pt"));
+        assertEquals("https://estoyqueloleo-max.github.io/agps/help_pt.html#geographic_maps",
+                p.resolveDocumentationUrl(6, "pt_BR"));
+    }
+
+    @Test
+    public void testRussianDocumentationUrls() {
+        assertEquals("https://estoyqueloleo-max.github.io/agps/help_ru.html",
+                p.resolveDocumentationUrl(3, "ru"));
+        assertEquals("https://estoyqueloleo-max.github.io/agps/index_ru.html",
+                p.resolveDocumentationUrl(2, "ru"));
+        assertEquals("https://estoyqueloleo-max.github.io/agps/help_ru.html#geographic_maps",
+                p.resolveDocumentationUrl(5, "ru-RU"));
+    }
+
+    @Test
     public void testEnglishAndFallbackDocumentationUrls() {
         assertEquals("https://estoyqueloleo-max.github.io/agps/help.html",
                 p.resolveDocumentationUrl(3, "en"));
@@ -46,7 +76,7 @@ public class DocumentationUrlTest {
         assertEquals("https://estoyqueloleo-max.github.io/agps/help.html",
                 p.resolveDocumentationUrl(3, "de"));
         assertEquals("https://estoyqueloleo-max.github.io/agps/index.html",
-                p.resolveDocumentationUrl(2, "fr"));
+                p.resolveDocumentationUrl(2, "ja"));
     }
 
     @Test

@@ -72,10 +72,19 @@ public class p {
 
     public static String resolveDocumentationUrl(int targetPageCode, String languageCode) {
         String languageSuffix = "";
-        if ("es".equalsIgnoreCase(languageCode)) {
-            languageSuffix = "_es";
-        } else if ("it".equalsIgnoreCase(languageCode)) {
-            languageSuffix = "_it";
+        if (languageCode != null) {
+            String lower = languageCode.toLowerCase(Locale.ROOT);
+            if (lower.startsWith("es")) {
+                languageSuffix = "_es";
+            } else if (lower.startsWith("it")) {
+                languageSuffix = "_it";
+            } else if (lower.startsWith("fr")) {
+                languageSuffix = "_fr";
+            } else if (lower.startsWith("pt")) {
+                languageSuffix = "_pt";
+            } else if (lower.startsWith("ru")) {
+                languageSuffix = "_ru";
+            }
         }
 
         switch (targetPageCode) {
