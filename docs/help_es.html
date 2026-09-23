@@ -75,6 +75,7 @@
                                 <h4>► <a href="#contour_lines">Curvas de Nivel</a></h4>
                                 <h4>► <a href="#elevation">Altitud y Elevación (DEM)</a></h4>
                                 <h4>► <a href="#gpx_editor">Edición de Pistas GPX</a></h4>
+                                <h4>► <a href="#tech_architecture">Arquitectura Técnica y Renderizado</a></h4>
                                 <h4>► <a href="#credits">Créditos y Recursos</a></h4>
 
                                 <hr class="wp-block-separator" />
@@ -117,6 +118,35 @@
                                     <li><strong>Añadir nuevos POIs</strong>: Asignados a cualquier punto del mapa o directamente a la traza de la ruta.</li>
                                     <li><strong>Guardar</strong>: Exporta el recorrido resultante a un nuevo archivo GPX limpio.</li>
                                 </ol>
+
+                                <hr class="wp-block-separator" />
+
+                                <h4 id="tech_architecture">Arquitectura Técnica y Pipeline de Renderizado</h4>
+                                <p>Para desarrolladores y colaboradores del proyecto, este es el funcionamiento interno del motor de renderizado vectorial y caché de mapas offline en <strong>A-GPS Tracker++</strong>:</p>
+
+                                <div style="background: #1e293b; color: #f8fafc; padding: 18px 22px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 15px 0;">
+                                  <div><strong>[RotateView (main_activity.xml)]</strong> &nbsp;— Contenedor con rotación y brújula</div>
+                                  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+                                  <div><strong>[MapView (MainActivity.java)]</strong> &nbsp;— Superficie de vista Android</div>
+                                  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+                                  <div><strong>[m2.java]</strong> &nbsp;— Controlador y configurador de mapa</div>
+                                  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+                                  <div><strong>[x2.java (TileRendererLayer)]</strong> &nbsp;— Capa principal de renderizado Mapsforge</div>
+                                  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong>MultiMapDataStore</strong> (world.map + mapas regionales .map)</div>
+                                  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong>TwoLevelTileCache</strong> (InMemoryTileCache + FileSystemTileCache)</div>
+                                  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>MapWorkerPool</strong> (Decodificación multihilo de vector binario a bitmap)</div>
+                                  <div style="color: #a855f7;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+                                  <div style="color: #facc15;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>RenderTheme XML</strong> (gioDefault.xml / Elevate.xml)</div>
+                                </div>
+
+                                <p><strong>Componentes Clave del Pipeline:</strong></p>
+                                <ul>
+                                    <li><strong>RotateView:</strong> Aloja la vista <code>MapView</code> para permitir rotación de rumbo suave y sincronización con la brújula sin necesidad de re-renderizar todas las teselas desde cero.</li>
+                                    <li><strong>Controlador de Mapa (<code>m2.java</code>):</strong> Consulta los mapas locales en almacenamiento, configura el tamaño de las cachés y gestiona la capa de datos.</li>
+                                    <li><strong>TileRendererLayer (<code>x2.java</code>):</strong> Gestiona las peticiones del viewport visible, el cálculo de coordenadas de teselas, la caché de etiquetas de texto y el encolado de tareas de dibujo.</li>
+                                    <li><strong>MapWorkerPool y Multihilo:</strong> Utiliza un número de hilos adaptativo según los núcleos de la CPU para decodificar vectores binarios de Mapsforge en mapas de bits acelerados por GPU.</li>
+                                </ul>
+                                <p>Las mejoras pendientes en la carga de mapas (como la intersección por viewport y el límite dinámico de niveles de zoom) se encuentran monitorizadas en el Issue de GitHub <a href="https://github.com/estoyqueloleo-max/agps/issues/8" target="_blank">#8</a>.</p>
 
                                 <hr class="wp-block-separator" />
 

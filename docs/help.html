@@ -187,9 +187,10 @@ form {
 <h4>
 
 </h4>
-<h4><a href="#elevation">► Elevation</a></h4>
-<h4><a href="#gpx_editor">► Gpx Editor</a></h4>
-<h4><a href="help.html#credits">►Credits</a></h4>
+<h4>► <a href="#elevation">Elevation</a></h4>
+<h4>► <a href="#gpx_editor">Gpx Editor</a></h4>
+<h4>► <a href="#tech_architecture">Technical Architecture &amp; Rendering Pipeline</a></h4>
+<h4>► <a href="#credits">Credits</a></h4>
 <p></p>
 <p>&nbsp;</p>
 <p><!-- /wp:separator --></p>
@@ -266,6 +267,35 @@ form {
 <li><strong>Mapsforge</strong> API at  <a href="https://github.com/mapsforge/mapsforge">https://github.com/mapsforge/mapsforge</a></li>
 <li><strong>Elevate</strong> map theme by Tobias Kühn, <a href="http://www.openandromaps.org/en/legend/elevate-mountain-hike-theme">http://www.openandromaps.org/en/legend/elevate-mountain-hike-theme</a>&#8220;</li>
 </ul>
+
+<hr class="wp-block-separator" />
+
+<h4 id="tech_architecture">Technical Architecture &amp; Rendering Pipeline</h4>
+<p>For developers and contributors, here is how the offline map vector rendering and caching architecture works inside <strong>A-GPS Tracker++</strong>:</p>
+
+<div style="background: #1e293b; color: #f8fafc; padding: 18px 22px; border-radius: 8px; font-family: monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 15px 0;">
+  <div><strong>[RotateView (main_activity.xml)]</strong> &nbsp;— Gesture &amp; Compass Container</div>
+  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+  <div><strong>[MapView (MainActivity.java)]</strong> &nbsp;— Android View Surface</div>
+  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+  <div><strong>[m2.java]</strong> &nbsp;— Map Controller &amp; Configuration</div>
+  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+  <div><strong>[x2.java (TileRendererLayer)]</strong> &nbsp;— Core Mapsforge Rendering Layer</div>
+  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong>MultiMapDataStore</strong> (world.map + regional .map files)</div>
+  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong>TwoLevelTileCache</strong> (InMemoryTileCache + FileSystemTileCache)</div>
+  <div style="color: #38bdf8;">&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>MapWorkerPool</strong> (Multi-threaded binary vector → bitmap decoding)</div>
+  <div style="color: #a855f7;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│</div>
+  <div style="color: #facc15;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► <strong>RenderTheme XML</strong> (gioDefault.xml / Elevate.xml)</div>
+</div>
+
+<p><strong>Core Pipeline Components:</strong></p>
+<ul>
+    <li><strong>RotateView:</strong> Hosts the <code>MapView</code> to enable real-time map orientation heading and compass synchronization without triggering expensive full-canvas redraws.</li>
+    <li><strong>Map Controller (<code>m2.java</code>):</strong> Detects active location, queries local map storage, configures tile cache capacities, and assigns map layers.</li>
+    <li><strong>TileRendererLayer (<code>x2.java</code>):</strong> Handles viewport requests, tile coordinate calculations, label placement caching, and dispatching to worker threads.</li>
+    <li><strong>MapWorkerPool &amp; Multi-threading:</strong> Utilizes adaptive multi-threading based on available CPU cores to decode Mapsforge binary vector tiles into GPU-accelerated bitmaps.</li>
+</ul>
+<p>Pending enhancements to map loading (such as viewport-intersection bounding boxes and dynamic zoom clamping) are tracked in GitHub Issue <a href="https://github.com/estoyqueloleo-max/agps/issues/8" target="_blank">#8</a>.</p>
 <p>&nbsp;</p>
 <p><!-- /wp:heading --></p> </div><!-- .entry-content -->
 
