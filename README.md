@@ -3,9 +3,12 @@
 [![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0%20%2F%20Community%20Preservation-blue.svg)](LICENSE)
 [![Status: Maintained](https://img.shields.io/badge/Status-Community%20Revival-brightgreen.svg)]()
+[![Documentation](https://img.shields.io/badge/Documentation-GitHub%20Pages-blue.svg)](https://estoyqueloleo-max.github.io/agps/)
 [![In Memory of](https://img.shields.io/badge/In%20Memory%20of-Giorgio%20Battistoni-purple.svg)](#️-in-memory-of-giorgio-battistoni-giobat)
 
 > **A community revival and preservation project dedicated to keeping the beloved outdoor and trekking navigation app alive, free, ad-free, and accessible to everyone.**
+>
+> 🌐 **Website & User Manual:** [https://estoyqueloleo-max.github.io/agps/](https://estoyqueloleo-max.github.io/agps/)
 
 ---
 
