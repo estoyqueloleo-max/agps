@@ -76,28 +76,22 @@ This document tracks pending engineering tasks, architectural modernizations, an
 
 ---
 
-## 📌 Pending Tech Milestones
+## 📌 Pending Tech Milestones & GitHub Issues
 
-### Tech Milestone 1: Core Deobfuscation
+### Tech Milestone 1: Core Deobfuscation ([#7](https://github.com/estoyqueloleo-max/agps/issues/7))
+- [ ] Selective core deobfuscation (`IntServLocGpsPP` and `MainActivity`). Rename obfuscated fields to semantic English names per [`AGENTS.md`](AGENTS.md).
 
-- [ ] Rename obfuscated fields in `IntServLocGpsPP` and `MainActivity` to semantic English names.
-- [ ] Add unit tests covering the deobfuscated logic before and after renaming.
-
-### Tech Milestone 2: Public DEM Mirror Routing
-
+### Tech Milestone 2: Public DEM Mirror Routing ([#9](https://github.com/estoyqueloleo-max/agps/issues/9))
 - [ ] Route DEM tile requests to NASA Earthdata / USGS / Viewfinder Panoramas.
 - [ ] Evaluate dynamic on-the-fly relief as an alternative to static pre-generated archives.
 
-### Tech Milestone 3: Internationalization & Translation (i18n)
-
+### Tech Milestone 3: Internationalization & Translation (i18n) ([#10](https://github.com/estoyqueloleo-max/agps/issues/10))
 - [ ] Audit and standardize English base strings (`values/strings.xml`).
 - [ ] Clean up decompiler string artifacts (garbage variable-name strings).
 - [ ] Complete Spanish (`values-es`) and Italian (`values-it`) translations across all layouts, menus, and alert dialogs.
 
-### Tech Milestone 4: Map Coverage & Rendering Fixes
-
+### Tech Milestone 4: Map Coverage & Rendering Fixes ([#8](https://github.com/estoyqueloleo-max/agps/issues/8))
 > See [`TODO_THECH.md`](TODO_THECH.md) for full root cause analysis.
-
 - [ ] **Viewport-intersection map loading (`m2.java:b`):** Load all `.map` files whose `BoundingBox` intersects the visible viewport (not just contains the center point) to fix blank tiles when zooming out.
 - [ ] **Dynamic zoom level clamping:** Read `zoomLevelMin`/`zoomLevelMax` from each `.map` header (offset 44+) and apply them to `MapView` to prevent navigation beyond tile coverage.
 - [ ] **`InMemoryTileCache` capacity review (`m2.java:245`):** Recalculate tile cache capacity for modern HiDPI screens (30–50 simultaneous tiles vs. 10–15 on older 720p devices).
@@ -106,8 +100,8 @@ This document tracks pending engineering tasks, architectural modernizations, an
 
 ## 🐛 Known Bugs
 
-- [ ] **Double-tap to import route does not trigger:** The double-tap gesture on a route/file in the file browser does not fire the import action. Review `GestureDetector` and ensure `onDoubleTap` is wired to the route loading flow.
-- [ ] **Elevation profile downsampling for long routes (deferred):** For routes >10,000 points, `GraphView` allocates thousands of `DataPoint` objects on the UI thread causing jank. Implement Ramer–Douglas–Peucker or fixed decimation (~500–1,000 representative points).
+- [ ] **Double-tap to import route does not trigger ([#5](https://github.com/estoyqueloleo-max/agps/issues/5)):** The double-tap gesture on a route/file in the file browser does not fire the import action. Review `GestureDetector` and ensure `onDoubleTap` is wired to the route loading flow.
+- [ ] **Elevation profile downsampling for long routes ([#6](https://github.com/estoyqueloleo-max/agps/issues/6)):** For routes >10,000 points, `GraphView` allocates thousands of `DataPoint` objects on the UI thread causing jank. Implement Ramer–Douglas–Peucker or fixed decimation (~500–1,000 representative points).
 
 ---
 
@@ -240,20 +234,20 @@ flowchart LR
 ## 📋 Full Pending Milestones Summary
 
 ### 🔧 Track A: Technical
-- [ ] **Tech Milestone 1:** Core deobfuscation (`IntServLocGpsPP` + `MainActivity`)
-- [ ] **Tech Milestone 2:** Public DEM mirror routing (NASA Earthdata / USGS / Viewfinder)
-- [ ] **Tech Milestone 3:** i18n audit — English base strings + ES + IT translations
-- [ ] **Tech Milestone 4:** Map coverage & rendering fixes (viewport intersection, dynamic zoom clamping, tile cache capacity)
+- [ ] **Tech Milestone 1:** Core deobfuscation (`IntServLocGpsPP` + `MainActivity`) — [#7](https://github.com/estoyqueloleo-max/agps/issues/7)
+- [ ] **Tech Milestone 2:** Public DEM mirror routing (NASA Earthdata / USGS / Viewfinder) — [#9](https://github.com/estoyqueloleo-max/agps/issues/9)
+- [ ] **Tech Milestone 3:** i18n audit — English base strings + ES + IT translations — [#10](https://github.com/estoyqueloleo-max/agps/issues/10)
+- [ ] **Tech Milestone 4:** Map coverage & rendering fixes (viewport intersection, dynamic zoom clamping, tile cache capacity) — [#8](https://github.com/estoyqueloleo-max/agps/issues/8)
 
 ### 🐛 Known Bugs
-- [ ] Double-tap to import route does not trigger
-- [ ] Elevation profile downsampling for long routes (>10,000 pts) — deferred
+- [ ] Double-tap to import route does not trigger — [#5](https://github.com/estoyqueloleo-max/agps/issues/5)
+- [ ] Elevation profile downsampling for long routes (>10,000 pts) — [#6](https://github.com/estoyqueloleo-max/agps/issues/6)
 
 ### 🎨 Track B: Creative (Future Forks)
 - [ ] **Creative Milestone 1:** GPS Route Art overlay & GPX stroke smoother
 - [ ] **Creative Milestone 2:** Serverless P2P networking bridge (P2PT / WebRTC)
 - [ ] **Creative Milestone 3:** Outdoor Tron Lightcycle & GPS Maze prototypes
 
-### 🛡️ Track C: Quality & Testing
-- [ ] **QA Milestone 5:** Comprehensive GPX parser + DEM elevation unit test suite
-- [ ] **QA Milestone 6:** Espresso UI smoke test suite for core user journeys
+### 🛡️ Track C: Quality & Testing (41 Automated Tests Passing)
+- [x] **QA Milestones 1–4:** Automated test harness (JUnit 4 + Mockito + Robolectric), GPX parsing, DEM contours, service leak fix, visual tile render tests (`testDebugUnitTest`).
+- [ ] **QA Milestone 6:** Espresso UI smoke test suite for core user journeys (requires device/emulator).
