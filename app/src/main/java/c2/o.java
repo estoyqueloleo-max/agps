@@ -157,6 +157,13 @@ public class o {
                 marker.requestRedraw();
             }
         }
+        CopyOnWriteArrayList<Marker> altMarkers = AgpsApplication.altitudeMarkers;
+        if (altMarkers != null) {
+            for (Marker marker : altMarkers) {
+                marker.setVisible(isVisible);
+                marker.requestRedraw();
+            }
+        }
     }
 
     public static void d(BoundingBox box, int level) {

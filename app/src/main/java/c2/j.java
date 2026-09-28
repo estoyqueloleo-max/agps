@@ -540,6 +540,8 @@ public class j implements Callable<String> {
             v2.e("GPS-M", "DEM  File  Loaded:" + MainActivity.b0(this.f3019e.f3086b));
             int minContourElevation = (s7 - (s7 % 20)) + (-20);
             int currentContourElevation = (s8 - (s8 % 20)) + 20;
+            int elevationSpan = s8 - s7;
+            boolean fallbackTo50 = (elevationSpan < 100);
             this.f3016b.clear();
             while (currentContourElevation >= minContourElevation) {
                 this.f3015a.clear();
@@ -557,7 +559,7 @@ public class j implements Callable<String> {
                 if (currentContourElevation == minContourElevation) {
                     e(this.f3019e.f3086b, currentContourElevation);
                 } else {
-                    d(this.f3019e.f3086b, currentContourElevation);
+                    d(this.f3019e.f3086b, currentContourElevation, fallbackTo50);
                 }
                 currentContourElevation -= 20;
                 sArr3 = elevationMatrix;
@@ -613,7 +615,11 @@ public class j implements Callable<String> {
     }
 
     public final void d(String demName, int elevation) {
-        boolean isMajor = (elevation % 100 == 0);
+        d(demName, elevation, false);
+    }
+
+    public final void d(String demName, int elevation, boolean fallbackTo50) {
+        boolean isMajor = (elevation % 100 == 0) || (fallbackTo50 && (elevation % 50 == 0));
         org.mapsforge.core.graphics.Paint minorContourPaint = n2.a(Color.argb(180, 140, 85, 45), 2, 2);
         org.mapsforge.core.graphics.Paint majorContourPaint = n2.a(Color.argb(230, 80, 40, 20), 3, 2);
         org.mapsforge.core.graphics.Paint contourPaint = isMajor ? majorContourPaint : minorContourPaint;
@@ -640,27 +646,26 @@ public class j implements Callable<String> {
         }
 
         // 2. Place elevation labels for major contours (every 100m)
-        // Multiple small segments belonging to the same contour line or hill ring will not
-        // receive clustered labels because we enforce a minimum spatial distance (700m) between placed labels.
+        // Multiple segments belonging to the same contour line or ring will not
+        // receive clustered labels because we enforce a minimum spatial distance (500m) between placed labels.
         if (isMajor && !this.f3016b.isEmpty()) {
             final double minLabelDistanceMeters = 500.0d;
             List<LatLong> placedLabelPositions = new ArrayList<>();
             Bitmap labelBitmap = n2.createAltitudeBadge(this.f3018d, elevation);
-            int offsetX = (-labelBitmap.getWidth()) / 2;
-            int offsetY = (-labelBitmap.getHeight()) / 2;
 
             for (int contourIndex = 0; contourIndex < this.f3016b.size(); contourIndex++) {
                 t contour = this.f3016b.get(contourIndex);
-                if (contour.f3171a == null || contour.f3171a.size() < 3) {
+                if (contour.f3171a == null || contour.f3171a.size() < 2) {
                     continue;
                 }
 
-                int pointCount = contour.f3171a.size();
+                LatLong p1 = contour.f3171a.get(0);
+                LatLong p2 = contour.f3171a.get(contour.f3171a.size() - 1);
+                LatLong midPoint = new LatLong((p1.latitude + p2.latitude) / 2.0d, (p1.longitude + p2.longitude) / 2.0d);
 
-                // Candidate 1: midpoint of this contour segment
-                LatLong midPoint = contour.f3171a.get(pointCount / 2);
                 if (isFarEnough(midPoint, placedLabelPositions, minLabelDistanceMeters)) {
-                    Marker altMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
+                    Marker altMarker = new Marker(midPoint, labelBitmap, 0, 0);
+                    altMarker.setVisible(true);
                     altMarker.requestRedraw();
                     AgpsApplication.altitudeMarkers.add(altMarker);
                     o.demOverlayLayers.add(altMarker);
@@ -669,30 +674,9 @@ public class j implements Callable<String> {
                     }
                     placedLabelPositions.add(midPoint);
                 }
-
-                // Candidate 2: along long contour segments, space additional labels
-                double accumulatedDist = 0.0d;
-                for (int p = 0; p < pointCount - 1; p++) {
-                    LatLong p1 = contour.f3171a.get(p);
-                    LatLong p2 = contour.f3171a.get(p + 1);
-                    accumulatedDist += calculateDistanceMeters(p1, p2);
-                    if (accumulatedDist >= minLabelDistanceMeters) {
-                        if (isFarEnough(p2, placedLabelPositions, minLabelDistanceMeters)) {
-                            Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
-                            altMarker.requestRedraw();
-                            AgpsApplication.altitudeMarkers.add(altMarker);
-                            o.demOverlayLayers.add(altMarker);
-                            if (MainActivity.f3626n1 != null) {
-                                MainActivity.f3626n1.a(altMarker);
-                            }
-                            placedLabelPositions.add(p2);
-                        }
-                        accumulatedDist = 0.0d;
-                    }
-                }
             }
             v2.e("GPS-M", "Major contour " + elevation + "m: placed " + placedLabelPositions.size()
-                    + " labels (map zoom=" + currentZoom + ", total altitudeMarkers=" + AgpsApplication.altitudeMarkers.size() + ")");
+                    + " labels (total altitudeMarkers=" + AgpsApplication.altitudeMarkers.size() + ")");
         }
     }
 

@@ -229,7 +229,7 @@
             </rule>
             <rule e="way" k="contour_ext" v="elevation_medium|elevation_major|~">
                 <line stroke="#9E8A78" stroke-width="0.25" />
-                <pathText k="ele" font-style="bold" font-size="8" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.5" repeat-start="35" repeat-gap="120" />
+                <pathText k="ele" font-style="bold" font-size="8" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.5" repeat-start="10" repeat-gap="50" />
             </rule>
         </rule>
         <rule e="way" k="*" v="*" zoom-min="14" zoom-max="15">
@@ -238,7 +238,7 @@
             </rule>
             <rule e="way" k="contour_ext" v="elevation_medium|elevation_major|~">
                 <line stroke="#8E7860" stroke-width="0.25" />
-                <pathText k="ele" font-style="bold" font-size="8" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.5" repeat-start="35" repeat-gap="120" />
+                <pathText k="ele" font-style="bold" font-size="8" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.5" repeat-start="10" repeat-gap="50" />
             </rule>
         </rule>
         <rule e="way" k="*" v="*" zoom-min="16">
@@ -247,7 +247,7 @@
             </rule>
             <rule e="way" k="contour_ext" v="elevation_medium|elevation_major|~">
                 <line stroke="#8E7860" stroke-width="0.3" />
-                <pathText k="ele" font-style="bold" font-size="9" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.8" repeat-start="45" repeat-gap="150" />
+                <pathText k="ele" font-style="bold" font-size="9" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.8" repeat-start="15" repeat-gap="60" />
             </rule>
         </rule>
     </rule>

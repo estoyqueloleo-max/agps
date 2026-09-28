@@ -280,7 +280,7 @@ public class ContourElevationLabelsTest {
 
     @Test
     public void testDemContourLabelGenerationForMajorAndSummitContours() {
-        AgpsApplication.f3580w.clear();
+        AgpsApplication.altitudeMarkers.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
         // Create a major contour (1200m) long enough to cross the 2500m label threshold:
@@ -294,23 +294,23 @@ public class ContourElevationLabelsTest {
         // Run d() for 1200m
         contourTask.d("test.hgt", 1200);
 
-        Assert.assertTrue("Major contour >= 2500m should receive spaced markers", AgpsApplication.f3580w.size() >= 1);
-        Marker marker = AgpsApplication.f3580w.get(0);
+        Assert.assertTrue("Major contour >= 2500m should receive spaced markers", AgpsApplication.altitudeMarkers.size() >= 1);
+        Marker marker = AgpsApplication.altitudeMarkers.get(0);
         Assert.assertNotNull(marker);
 
         // Minor contour (1220m) - should not generate label markers
-        AgpsApplication.f3580w.clear();
+        AgpsApplication.altitudeMarkers.clear();
         c2.t minorContour = new c2.t(1220);
         minorContour.f3171a.addAll(longMajorContour.f3171a);
         contourTask.f3016b.clear();
         contourTask.f3016b.add(minorContour);
 
         contourTask.d("test.hgt", 1220);
-        Assert.assertEquals("Minor contour (not divisible by 100) should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
+        Assert.assertEquals("Minor contour (not divisible by 100) should have 0 altitude markers", 0, AgpsApplication.altitudeMarkers.size());
 
         // Check o.c(13) visibility toggle
         o.c(13);
-        Assert.assertEquals(0, AgpsApplication.f3580w.size());
+        Assert.assertEquals(0, AgpsApplication.altitudeMarkers.size());
     }
 
     @Test
@@ -318,7 +318,7 @@ public class ContourElevationLabelsTest {
         // Regression test for the issue where dozens of small segments around a hill
         // each got a label, resulting in 30 stacked labels.
         // Spatial de-duplication must ensure only 1 label is placed per cluster (< 700m).
-        AgpsApplication.f3580w.clear();
+        AgpsApplication.altitudeMarkers.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
         // Add 5 segments around the same hill (all within 200m of each other)
@@ -341,7 +341,7 @@ public class ContourElevationLabelsTest {
 
         // Hill 1 should have exactly 1 label, far hill should have exactly 1 label = 2 total
         Assert.assertEquals("5 adjacent segments should only produce 1 label, plus 1 for far hill",
-                2, AgpsApplication.f3580w.size());
+                2, AgpsApplication.altitudeMarkers.size());
     }
 
     @Test
