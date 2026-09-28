@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.DocumentsContract;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -47,31 +49,66 @@ import org.xmlpull.v1.XmlPullParser;
 
 /* JADX INFO: loaded from: classes.dex */
 public class ActivityFileDialogGpxJpg extends AppCompatActivity {
+    public static boolean showDoubleTapAdviceOnResume = true;
     public static boolean L = true;
+
+    public static int sortBy = 2;
     public static int M = 2;
+
+    public static boolean needSortUpdate = false;
     public static boolean N = false;
+
+    public ArrayList<t2> fileItemsList;
     public ArrayList<t2> C;
+
+    public int fileTypeFilter;
     public int D;
+
+    public int rowLayoutResId;
     public int G;
+
+    public Uri currentDirectoryUri;
     public Uri H;
+
+    public Handler mainHandler;
     public Handler J;
 
-    /* JADX INFO: renamed from: v, reason: collision with root package name */
+    public TextView directoryPathHeaderTextView;
     public TextView f3547v;
 
-    /* JADX INFO: renamed from: w, reason: collision with root package name */
+    public ArrayList<HashMap<String, Object>> listData;
     public ArrayList<HashMap<String, Object>> f3548w;
+
+    public int requestType;
     public int x;
 
-    /* JADX INFO: renamed from: y, reason: collision with root package name */
+    public SimpleAdapter fileListAdapter;
     public SimpleAdapter f3549y;
+
+    public ListView fileListView;
     public ListView z;
+
+    public int selectedItemPosition = -1;
     public int A = -1;
+
+    public View selectedView = null;
     public View B = null;
+
+    public String fileExtensionFilter = XmlPullParser.NO_NAMESPACE;
     public String E = XmlPullParser.NO_NAMESPACE;
+
+    public long lastClickTime = 0;
     public long F = 0;
+    public int lastClickedPosition = -1;
+    public long lastDoubleTapTime = 0;
+
+    public boolean refreshRequested = false;
     public boolean I = false;
-    public Runnable K = new c();
+
+    public Runnable periodicRefreshRunnable = new c();
+    public Runnable K = periodicRefreshRunnable;
+
+    public GestureDetector gestureDetector;
 
     public class a extends SimpleAdapter {
         public a(Context context, List list, int i7, String[] strArr, int[] iArr) {
@@ -137,45 +174,49 @@ public class ActivityFileDialogGpxJpg extends AppCompatActivity {
         }
 
         @Override // android.widget.AdapterView.OnItemClickListener
-        public void onItemClick(AdapterView<?> adapterView, View view, int i7, long j7) {
-            if (ActivityFileDialogGpxJpg.this.C.get(i7).f3182d) {
-                ActivityFileDialogGpxJpg activityFileDialogGpxJpg = ActivityFileDialogGpxJpg.this;
-                if (activityFileDialogGpxJpg.C.size() != 0 && activityFileDialogGpxJpg.C.size() >= i7 - 1) {
-                    Uri uri = activityFileDialogGpxJpg.C.get(i7).f3184f;
-                    activityFileDialogGpxJpg.H = uri;
-                    activityFileDialogGpxJpg.x(uri);
-                }
-            } else {
-                ActivityFileDialogGpxJpg activityFileDialogGpxJpg2 = ActivityFileDialogGpxJpg.this;
-                activityFileDialogGpxJpg2.A = i7;
-                activityFileDialogGpxJpg2.B = view;
-                long jCurrentTimeMillis = System.currentTimeMillis();
-                if (jCurrentTimeMillis - ActivityFileDialogGpxJpg.this.F < 300) {
-                    v2.e("GPS-M", "=> Double Click -------------------------");
-                    t2 t2Var = ActivityFileDialogGpxJpg.this.C.get(i7);
-                    String str = t2Var.f3179a;
-                    if (str.endsWith("gpx")) {
-                        Intent intent = ActivityFileDialogGpxJpg.this.getIntent();
-                        intent.putExtra("RESULT_PATH", str);
-                        intent.putExtra("FILE_URI", t2Var.f3184f);
-                        ActivityFileDialogGpxJpg.this.setResult(-1, intent);
-                        ActivityFileDialogGpxJpg.this.finish();
-                    } else if (t2Var.f3179a.endsWith("jpg")) {
-                        ActivityFileDialogGpxJpg activityFileDialogGpxJpg3 = ActivityFileDialogGpxJpg.this;
-                        Uri uri2 = t2Var.f3184f;
-                        Objects.requireNonNull(activityFileDialogGpxJpg3);
-                        Intent intent2 = new Intent(activityFileDialogGpxJpg3, (Class<?>) ActivityMyPhotoShow.class);
-                        intent2.setData(uri2);
-                        intent2.putExtra("filePath", str);
-                        intent2.putExtra("FILE_URI", uri2);
-                        intent2.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        activityFileDialogGpxJpg3.startActivity(intent2);
-                    }
-                    ActivityFileDialogGpxJpg.this.F = 0L;
-                }
-                ActivityFileDialogGpxJpg.this.F = jCurrentTimeMillis;
+        public void onItemClick(AdapterView<?> adapterView, View view, int position, long j7) {
+            if (ActivityFileDialogGpxJpg.this.fileItemsList == null || 
+                position < 0 || position >= ActivityFileDialogGpxJpg.this.fileItemsList.size()) {
+                return;
             }
-            ActivityFileDialogGpxJpg.this.z.invalidate();
+
+            long now = System.currentTimeMillis();
+            // If gesture detector already consumed double-tap gesture, do not re-process
+            if (now - ActivityFileDialogGpxJpg.this.lastDoubleTapTime < 500L) {
+                return;
+            }
+
+            t2 item = ActivityFileDialogGpxJpg.this.fileItemsList.get(position);
+            if (item.isDirectory || item.f3182d) {
+                Uri dirUri = item.uri != null ? item.uri : item.f3184f;
+                ActivityFileDialogGpxJpg.this.currentDirectoryUri = dirUri;
+                ActivityFileDialogGpxJpg.this.H = dirUri;
+                ActivityFileDialogGpxJpg.this.x(dirUri);
+                return;
+            }
+
+            // Check for double click via rapid item clicks on the same item within 500ms
+            if (position == ActivityFileDialogGpxJpg.this.lastClickedPosition && 
+                (now - ActivityFileDialogGpxJpg.this.lastClickTime < 500L)) {
+                v2.e("GPS-M", "=> Double Click via ItemClick on item " + position);
+                ActivityFileDialogGpxJpg.this.lastClickTime = 0L;
+                ActivityFileDialogGpxJpg.this.F = 0L;
+                ActivityFileDialogGpxJpg.this.lastClickedPosition = -1;
+                ActivityFileDialogGpxJpg.this.openFileItem(position);
+                return;
+            }
+
+            // Single tap: select the item and update toolbar state
+            ActivityFileDialogGpxJpg.this.lastClickTime = now;
+            ActivityFileDialogGpxJpg.this.F = now;
+            ActivityFileDialogGpxJpg.this.lastClickedPosition = position;
+            ActivityFileDialogGpxJpg.this.selectedItemPosition = position;
+            ActivityFileDialogGpxJpg.this.A = position;
+            ActivityFileDialogGpxJpg.this.selectedView = view;
+            ActivityFileDialogGpxJpg.this.B = view;
+            if (ActivityFileDialogGpxJpg.this.fileListView != null) {
+                ActivityFileDialogGpxJpg.this.fileListView.invalidate();
+            }
         }
     }
 
@@ -207,45 +248,66 @@ public class ActivityFileDialogGpxJpg extends AppCompatActivity {
 
     public static List<t2> y(Context context, Uri uri) {
         ContentResolver contentResolver = context.getContentResolver();
-        Uri uriBuildChildDocumentsUriUsingTree = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri));
         LinkedList linkedList = new LinkedList();
-        Cursor cursorQuery = contentResolver.query(uriBuildChildDocumentsUriUsingTree, new String[]{"document_id", "_display_name", "mime_type", "flags", "last_modified", "_size"}, null, null, null);
-        while (cursorQuery.moveToNext()) {
-            try {
-                String string = cursorQuery.getString(0);
-                String string2 = cursorQuery.getString(1);
-                String string3 = cursorQuery.getString(2);
-                String string4 = cursorQuery.getString(3);
-                Long lValueOf = Long.valueOf(Long.parseLong(cursorQuery.getString(4)));
-                int i7 = Integer.parseInt(cursorQuery.getString(5));
-                Uri uriBuildDocumentUriUsingTree = DocumentsContract.buildDocumentUriUsingTree(uriBuildChildDocumentsUriUsingTree, string);
-                try {
-                    linkedList.add(new t2(string, string2, string3, string4, lValueOf, i7, DocumentFile.fromSingleUri(context, uriBuildDocumentUriUsingTree), uriBuildDocumentUriUsingTree));
-                } catch (Exception e8) {
-                    d.c("getListUriFiles: ", e8, "GPS-M");
-                }
-            } catch (Exception e9) {
-                d.c("getListUriFiles query: ", e9, "GPS-M");
-            }
+        if (uri == null) {
+            return linkedList;
         }
-        cursorQuery.close();
+        try {
+            Uri uriBuildChildDocumentsUriUsingTree = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri));
+            Cursor cursorQuery = contentResolver.query(uriBuildChildDocumentsUriUsingTree, new String[]{"document_id", "_display_name", "mime_type", "flags", "last_modified", "_size"}, null, null, null);
+            if (cursorQuery == null) {
+                return linkedList;
+            }
+            while (cursorQuery.moveToNext()) {
+                try {
+                    String string = cursorQuery.getString(0);
+                    String string2 = cursorQuery.getString(1);
+                    String string3 = cursorQuery.getString(2);
+                    String string4 = cursorQuery.getString(3);
+                    Long lValueOf = Long.valueOf(Long.parseLong(cursorQuery.getString(4)));
+                    int i7 = Integer.parseInt(cursorQuery.getString(5));
+                    Uri uriBuildDocumentUriUsingTree = DocumentsContract.buildDocumentUriUsingTree(uriBuildChildDocumentsUriUsingTree, string);
+                    try {
+                        linkedList.add(new t2(string, string2, string3, string4, lValueOf, i7, DocumentFile.fromSingleUri(context, uriBuildDocumentUriUsingTree), uriBuildDocumentUriUsingTree));
+                    } catch (Exception e8) {
+                        d.c("getListUriFiles: ", e8, "GPS-M");
+                    }
+                } catch (Exception e9) {
+                    d.c("getListUriFiles query: ", e9, "GPS-M");
+                }
+            }
+            cursorQuery.close();
+        } catch (Exception e) {
+            d.c("getListUriFiles tree query: ", e, "GPS-M");
+        }
         return linkedList;
     }
 
     public static Uri z(Context context, Uri uri, String str) {
-        Cursor cursorQuery = context.getContentResolver().query(DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri)), new String[]{"document_id", "_display_name", "mime_type"}, null, null, null);
-        while (cursorQuery.moveToNext()) {
-            try {
-                String string = cursorQuery.getString(0);
-                String string2 = cursorQuery.getString(1);
-                if (cursorQuery.getString(2).equals("vnd.android.document/directory") && string2.equals(str)) {
-                    return DocumentsContract.buildDocumentUriUsingTree(uri, string);
-                }
-            } catch (Exception e8) {
-                d.c("getListUriFiles;", e8, "GPS-M");
-            }
+        if (uri == null) {
+            return null;
         }
-        cursorQuery.close();
+        try {
+            Cursor cursorQuery = context.getContentResolver().query(DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri)), new String[]{"document_id", "_display_name", "mime_type"}, null, null, null);
+            if (cursorQuery == null) {
+                return null;
+            }
+            while (cursorQuery.moveToNext()) {
+                try {
+                    String string = cursorQuery.getString(0);
+                    String string2 = cursorQuery.getString(1);
+                    if (cursorQuery.getString(2).equals("vnd.android.document/directory") && string2.equals(str)) {
+                        cursorQuery.close();
+                        return DocumentsContract.buildDocumentUriUsingTree(uri, string);
+                    }
+                } catch (Exception e8) {
+                    d.c("getListUriFiles;", e8, "GPS-M");
+                }
+            }
+            cursorQuery.close();
+        } catch (Exception e) {
+            d.c("findSubfolderUri tree query: ", e, "GPS-M");
+        }
         return null;
     }
 
@@ -255,31 +317,50 @@ public class ActivityFileDialogGpxJpg extends AppCompatActivity {
         Snackbar.make(viewFindViewById, str, Snackbar.LENGTH_SHORT).show();
     }
 
+    public void openFileItem(int position) {
+        if (this.fileItemsList == null || position < 0 || position >= this.fileItemsList.size()) {
+            return;
+        }
+        t2 item = this.fileItemsList.get(position);
+        if (item.f3182d || item.isDirectory) {
+            Uri dirUri = item.uri != null ? item.uri : item.f3184f;
+            this.currentDirectoryUri = dirUri;
+            this.H = dirUri;
+            x(dirUri);
+            return;
+        }
+        String fileName = item.name != null ? item.name : item.f3179a;
+        Uri fileUri = item.uri != null ? item.uri : item.f3184f;
+        if (fileName != null && fileName.endsWith("gpx")) {
+            v2.e("GPS-M", "=> Import GPX route: " + fileName);
+            Intent resultIntent = getIntent();
+            resultIntent.putExtra("RESULT_PATH", fileName);
+            resultIntent.putExtra("FILE_URI", fileUri);
+            setResult(-1, resultIntent);
+            finish();
+        } else if (fileName != null && fileName.endsWith("jpg")) {
+            v2.e("GPS-M", "=> Open Photo: " + fileName);
+            Intent photoIntent = new Intent(this, (Class<?>) ActivityMyPhotoShow.class);
+            photoIntent.setData(fileUri);
+            photoIntent.putExtra("filePath", fileName);
+            photoIntent.putExtra("FILE_URI", fileUri);
+            photoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(photoIntent);
+        }
+    }
+
     public void onClickActionBar(View view) {
-        int i7 = this.A;
-        if (this.B == null || i7 == -1) {
+        int i7 = this.selectedItemPosition != -1 ? this.selectedItemPosition : this.A;
+        if ((this.selectedView == null && this.B == null) || i7 == -1 || this.fileItemsList == null || i7 >= this.fileItemsList.size()) {
             A(getResources().getString(R.string.please_select_item));
             return;
         }
-        t2 t2Var = this.C.get(i7);
+        t2 t2Var = this.fileItemsList.get(i7);
         String str = t2Var.f3179a;
         int id = view.getId();
         String str2 = "gpx";
         if (id == R.id.load_add_file || id == R.id.load_add_file_image || id == R.id.load_add_file_text) {
-            if (t2Var.f3179a.endsWith("gpx")) {
-                getIntent().putExtra("RESULT_PATH", str);
-                getIntent().putExtra("FILE_URI", t2Var.f3184f);
-                setResult(-1, getIntent());
-                finish();
-            } else if (t2Var.f3179a.endsWith("jpg")) {
-                Uri uri = t2Var.f3184f;
-                Intent intent = new Intent(this, (Class<?>) ActivityMyPhotoShow.class);
-                intent.setData(uri);
-                intent.putExtra("filePath", str);
-                intent.putExtra("FILE_URI", uri);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(intent);
-            }
+            openFileItem(i7);
         } else if (id == R.id.share_file || id == R.id.share_file_image || id == R.id.share_file_text) {
             if (t2Var.f3179a.endsWith("gpx") || t2Var.f3179a.endsWith("jpg")) {
                 Intent intent2 = new Intent("android.intent.action.SEND");
@@ -367,12 +448,48 @@ public class ActivityFileDialogGpxJpg extends AppCompatActivity {
             textView.setText(stringExtra);
         }
         this.f3548w = new ArrayList<>();
-        this.f3549y = new a(this, this.f3548w, this.G, new String[]{"key", "image", "date"}, new int[]{R.id.fdrowtext, R.id.fdrowimage, R.id.fdrowdate});
-        this.C = new ArrayList<>();
+        this.listData = this.f3548w;
+        this.fileListAdapter = new a(this, this.listData, this.G, new String[]{"key", "image", "date"}, new int[]{R.id.fdrowtext, R.id.fdrowimage, R.id.fdrowdate});
+        this.f3549y = this.fileListAdapter;
+        this.fileItemsList = new ArrayList<>();
+        this.C = this.fileItemsList;
         ListView listView = (ListView) findViewById(R.id.list);
+        this.fileListView = listView;
         this.z = listView;
-        listView.setAdapter((ListAdapter) this.f3549y);
-        this.z.setOnItemClickListener(new b());
+        listView.setAdapter((ListAdapter) this.fileListAdapter);
+        this.fileListView.setOnItemClickListener(new b());
+
+        this.gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if (ActivityFileDialogGpxJpg.this.fileListView == null) {
+                    return false;
+                }
+                int position = ActivityFileDialogGpxJpg.this.fileListView.pointToPosition((int) e.getX(), (int) e.getY());
+                if (position != AdapterView.INVALID_POSITION) {
+                    ActivityFileDialogGpxJpg.this.lastDoubleTapTime = System.currentTimeMillis();
+                    ActivityFileDialogGpxJpg.this.openFileItem(position);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        this.fileListView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (ActivityFileDialogGpxJpg.this.gestureDetector != null) {
+                    ActivityFileDialogGpxJpg.this.gestureDetector.onTouchEvent(event);
+                }
+                return false;
+            }
+        });
+
         int i7 = this.x;
         setSupportActionBar((Toolbar) findViewById(R.id.my_toolbar));
         ActionBar aVarT = getSupportActionBar();
@@ -392,6 +509,12 @@ public class ActivityFileDialogGpxJpg extends AppCompatActivity {
 
     @Override // f.e, androidx.fragment.app.q, android.app.Activity
     public void onDestroy() {
+        if (this.mainHandler != null) {
+            this.mainHandler.removeCallbacks(this.periodicRefreshRunnable);
+        }
+        if (this.J != null) {
+            this.J.removeCallbacks(this.K);
+        }
         super.onDestroy();
     }
 
@@ -460,7 +583,12 @@ public class ActivityFileDialogGpxJpg extends AppCompatActivity {
             return;
         }
         String lastPathSegment = uri.getLastPathSegment();
-        this.f3547v.setText(("External Dir:" + lastPathSegment.substring(lastPathSegment.lastIndexOf(58) + 1)));
+        if (lastPathSegment != null && this.f3547v != null) {
+            int colonIndex = lastPathSegment.lastIndexOf(58);
+            String folderName = colonIndex != -1 ? lastPathSegment.substring(colonIndex + 1) : lastPathSegment;
+            this.f3547v.setText("External Dir:" + folderName);
+        }
+        needSortUpdate = false;
         N = false;
         StringBuilder sbA = android.support.v4.media.b.a("GGG GetDir:");
         sbA.append(uri.toString());
