@@ -85,6 +85,9 @@ public class AgpsApplication extends Application {
     public static CopyOnWriteArrayList<Marker> f3580w = new CopyOnWriteArrayList<>();
     public static CopyOnWriteArrayList<Marker> x = new CopyOnWriteArrayList<>();
 
+    /** Elevation altitude label markers placed on DEM contour lines (separate from tile-name markers). */
+    public static CopyOnWriteArrayList<Marker> altitudeMarkers = new CopyOnWriteArrayList<>();
+
     /* JADX INFO: renamed from: y, reason: collision with root package name */
     public static boolean f3581y = false;
     public static boolean z = false;

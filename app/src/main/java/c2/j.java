@@ -583,7 +583,7 @@ public class j implements Callable<String> {
                 MainActivity.f3625m1.a("showWindowIsolines:" + e8);
             }
         }
-        v2.e("GPS-M", "Contour Task ended: total label markers = " + AgpsApplication.f3580w.size());
+        v2.e("GPS-M", "Contour Task ended: altitude markers placed = " + AgpsApplication.altitudeMarkers.size());
         return "OK";
     }
 
@@ -624,8 +624,6 @@ public class j implements Callable<String> {
                 && MainActivity.M0.getModel().mapViewPosition != null) {
             currentZoom = MainActivity.M0.getModel().mapViewPosition.getZoomLevel();
         }
-        // Markers are always visible; zoom gating is handled by l2.java observer
-        boolean isZoomSufficient = true;
 
         // 1. Draw contour polylines
         for (int contourIndex = 0; contourIndex < this.f3016b.size(); contourIndex++) {
@@ -664,7 +662,8 @@ public class j implements Callable<String> {
                 if (isFarEnough(midPoint, placedLabelPositions, minLabelDistanceMeters)) {
                     Marker altMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
                     altMarker.requestRedraw();
-                    AgpsApplication.f3580w.add(altMarker);
+                    AgpsApplication.altitudeMarkers.add(altMarker);
+                    o.demOverlayLayers.add(altMarker);
                     if (MainActivity.f3626n1 != null) {
                         MainActivity.f3626n1.a(altMarker);
                     }
@@ -681,7 +680,8 @@ public class j implements Callable<String> {
                         if (isFarEnough(p2, placedLabelPositions, minLabelDistanceMeters)) {
                             Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
                             altMarker.requestRedraw();
-                            AgpsApplication.f3580w.add(altMarker);
+                            AgpsApplication.altitudeMarkers.add(altMarker);
+                            o.demOverlayLayers.add(altMarker);
                             if (MainActivity.f3626n1 != null) {
                                 MainActivity.f3626n1.a(altMarker);
                             }
@@ -692,7 +692,7 @@ public class j implements Callable<String> {
                 }
             }
             v2.e("GPS-M", "Major contour " + elevation + "m: placed " + placedLabelPositions.size()
-                    + " labels (map zoom " + currentZoom + ", visible=" + isZoomSufficient + ")");
+                    + " labels (map zoom=" + currentZoom + ", total altitudeMarkers=" + AgpsApplication.altitudeMarkers.size() + ")");
         }
     }
 
