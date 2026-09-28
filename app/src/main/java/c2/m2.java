@@ -145,10 +145,13 @@ public class m2 implements XmlRenderThemeMenuCallback {
         if (xmlRenderThemeStyleMenu == null) {
             return null;
         }
-        String defaultLayerId = xmlRenderThemeStyleMenu.getDefaultValue();
-        XmlRenderThemeStyleLayer selectedLayer = null;
-        if (defaultLayerId != null && !defaultLayerId.isEmpty()) {
-            selectedLayer = xmlRenderThemeStyleMenu.getLayer(defaultLayerId);
+        String savedStyle = MainActivity.c0("ELEVATE_STYLE", "elv-hiking");
+        XmlRenderThemeStyleLayer selectedLayer = xmlRenderThemeStyleMenu.getLayer(savedStyle);
+        if (selectedLayer == null) {
+            String defaultLayerId = xmlRenderThemeStyleMenu.getDefaultValue();
+            if (defaultLayerId != null && !defaultLayerId.isEmpty()) {
+                selectedLayer = xmlRenderThemeStyleMenu.getLayer(defaultLayerId);
+            }
         }
         if (selectedLayer == null) {
             selectedLayer = xmlRenderThemeStyleMenu.getLayer("elv-hiking");

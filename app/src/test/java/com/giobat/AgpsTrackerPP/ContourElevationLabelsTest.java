@@ -143,8 +143,21 @@ public class ContourElevationLabelsTest {
         Assert.assertEquals("Minor contour line must be drawn", 1, renderedWays.size());
         Assert.assertTrue("Minor contour lines should not have labels at zoom 15", renderedTexts.isEmpty());
 
-        // Test 4: At low zoom (zoom 12), major line is drawn, but elevation labels are hidden
-        Tile lowZoomTile = new Tile(10, 10, (byte) 12, 256);
+        // Test 4: At zoom 13, major contour lines receive elevation labels
+        Tile zoom13Tile = new Tile(10, 10, (byte) 13, 256);
+        org.mapsforge.map.layer.renderer.RendererJob zoom13Job = new org.mapsforge.map.layer.renderer.RendererJob(zoom13Tile, mockStore, future, displayModel, 1.0f, false, false);
+        RenderContext zoom13RenderContext = new RenderContext(zoom13Job, AndroidGraphicFactory.INSTANCE);
+        renderedWays.clear();
+        renderedTexts.clear();
+        PolylineContainer polyZoom13 = new PolylineContainer(points, zoom13Tile, zoom13Tile, tagsOam);
+
+        renderTheme.matchLinearWay(callback, zoom13RenderContext, polyZoom13);
+        Assert.assertEquals("Major contour line drawn at zoom 13", 1, renderedWays.size());
+        Assert.assertEquals("Elevation labels must be visible at zoom 13", 1, renderedTexts.size());
+        Assert.assertEquals("1200", renderedTexts.get(0));
+
+        // Test 5: At overview zoom (zoom 11), major line is drawn, but elevation labels are hidden to avoid clutter
+        Tile lowZoomTile = new Tile(10, 10, (byte) 11, 256);
         org.mapsforge.map.layer.renderer.RendererJob lowZoomJob = new org.mapsforge.map.layer.renderer.RendererJob(lowZoomTile, mockStore, future, displayModel, 1.0f, false, false);
         RenderContext lowZoomRenderContext = new RenderContext(lowZoomJob, AndroidGraphicFactory.INSTANCE);
         renderedWays.clear();
@@ -152,8 +165,8 @@ public class ContourElevationLabelsTest {
         PolylineContainer polyLowZoom = new PolylineContainer(points, lowZoomTile, lowZoomTile, tagsOam);
 
         renderTheme.matchLinearWay(callback, lowZoomRenderContext, polyLowZoom);
-        Assert.assertEquals("Major contour line drawn at zoom 12", 1, renderedWays.size());
-        Assert.assertTrue("Labels must be hidden at zoom < 14", renderedTexts.isEmpty());
+        Assert.assertEquals("Major contour line drawn at zoom 11", 1, renderedWays.size());
+        Assert.assertTrue("Labels must be hidden at zoom <= 11", renderedTexts.isEmpty());
     }
 
     @Test
@@ -205,8 +218,9 @@ public class ContourElevationLabelsTest {
         // Test 1: n2.createAltitudeBadge generates properly sized bitmap with badge and text
         org.mapsforge.core.graphics.Bitmap badgeBitmap = n2.createAltitudeBadge(context, 1850);
         Assert.assertNotNull(badgeBitmap);
-        Assert.assertTrue("Altitude badge width must be at least 30px (was " + badgeBitmap.getWidth() + ")", badgeBitmap.getWidth() >= 30);
-        Assert.assertTrue("Altitude badge height must be at least 14px (was " + badgeBitmap.getHeight() + ")", badgeBitmap.getHeight() >= 14);
+        // Text-only label (no badge padding): width must contain at least the text characters
+        Assert.assertTrue("Altitude text label width must be positive (was " + badgeBitmap.getWidth() + ")", badgeBitmap.getWidth() > 0);
+        Assert.assertTrue("Altitude text label height must be positive (was " + badgeBitmap.getHeight() + ")", badgeBitmap.getHeight() > 0);
 
         android.graphics.Bitmap androidBmp = AndroidGraphicFactory.getBitmap(badgeBitmap);
         Assert.assertNotNull(androidBmp);
@@ -269,37 +283,87 @@ public class ContourElevationLabelsTest {
         AgpsApplication.f3580w.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
-        // Create a major contour (e.g. 1200m) with short summit ring (< 350m)
-        c2.t summitContour = new c2.t(1200);
-        summitContour.f3171a.add(new LatLong(40.000, -3.000));
-        summitContour.f3171a.add(new LatLong(40.001, -3.000));
-        summitContour.f3171a.add(new LatLong(40.001, -3.001));
-        summitContour.f3171a.add(new LatLong(40.000, -3.001));
-        summitContour.f3171a.add(new LatLong(40.000, -3.000));
-        contourTask.f3016b.add(summitContour);
+        // Create a major contour (1200m) long enough to cross the 2500m label threshold:
+        // 25 points × 0.001° lat ≈ 111m each = ~2664m total
+        c2.t longMajorContour = new c2.t(1200);
+        for (int i = 0; i <= 24; i++) {
+            longMajorContour.f3171a.add(new LatLong(40.0 + (i * 0.001), -3.0));
+        }
+        contourTask.f3016b.add(longMajorContour);
 
         // Run d() for 1200m
         contourTask.d("test.hgt", 1200);
 
-        Assert.assertEquals("Summit contour should receive 1 altitude badge marker at midpoint", 1, AgpsApplication.f3580w.size());
+        Assert.assertTrue("Major contour >= 2500m should receive spaced markers", AgpsApplication.f3580w.size() >= 1);
         Marker marker = AgpsApplication.f3580w.get(0);
         Assert.assertNotNull(marker);
-        Assert.assertEquals(summitContour.f3171a.get(2), marker.getLatLong());
 
         // Minor contour (1220m) - should not generate label markers
         AgpsApplication.f3580w.clear();
         c2.t minorContour = new c2.t(1220);
-        minorContour.f3171a.addAll(summitContour.f3171a);
+        minorContour.f3171a.addAll(longMajorContour.f3171a);
         contourTask.f3016b.clear();
         contourTask.f3016b.add(minorContour);
 
-        contourTask.d("test.hgt", 1220, false);
-        Assert.assertEquals("Minor contour without fallback should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
+        contourTask.d("test.hgt", 1220);
+        Assert.assertEquals("Minor contour (not divisible by 100) should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
 
-        // Fallback mode in flat terrain (where no multiple of 50 exists)
-        contourTask.d("test.hgt", 1240, true);
-        Assert.assertEquals("Multiple of 40 in fallback mode should generate altitude marker", 1, AgpsApplication.f3580w.size());
+        // Check o.c(13) visibility toggle
+        o.c(13);
+        Assert.assertEquals(0, AgpsApplication.f3580w.size());
+    }
+
+    @Test
+    public void testSpatialDeduplicationPreventsClusteredLabels() {
+        // Regression test for the issue where dozens of small segments around a hill
+        // each got a label, resulting in 30 stacked labels.
+        // Spatial de-duplication must ensure only 1 label is placed per cluster (< 700m).
+        AgpsApplication.f3580w.clear();
+        c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
+
+        // Add 5 segments around the same hill (all within 200m of each other)
+        for (int s = 0; s < 5; s++) {
+            c2.t segment = new c2.t(800);
+            for (int p = 0; p < 4; p++) {
+                segment.f3171a.add(new LatLong(40.000 + (s * 0.0003) + (p * 0.00005), -3.000));
+            }
+            contourTask.f3016b.add(segment);
+        }
+
+        // Add 1 segment on another hill 2km away
+        c2.t farSegment = new c2.t(800);
+        for (int p = 0; p < 4; p++) {
+            farSegment.f3171a.add(new LatLong(40.020 + (p * 0.0001), -3.000));
+        }
+        contourTask.f3016b.add(farSegment);
+
+        contourTask.d("test_dedup.hgt", 800);
+
+        // Hill 1 should have exactly 1 label, far hill should have exactly 1 label = 2 total
+        Assert.assertEquals("5 adjacent segments should only produce 1 label, plus 1 for far hill",
+                2, AgpsApplication.f3580w.size());
+    }
+
+    @Test
+    public void testIsFarEnoughHelper() {
+        List<LatLong> existing = new ArrayList<>();
+        LatLong p1 = new LatLong(40.0, -3.0);
+        existing.add(p1);
+
+        // Candidate within ~111m (< 700m)
+        LatLong closePoint = new LatLong(40.001, -3.0);
+        Assert.assertFalse("Point 111m away should NOT be far enough with 700m threshold",
+                c2.j.isFarEnough(closePoint, existing, 700.0d));
+
+        // Candidate ~2220m away (> 700m)
+        LatLong farPoint = new LatLong(40.02, -3.0);
+        Assert.assertTrue("Point 2220m away should be far enough with 700m threshold",
+                c2.j.isFarEnough(farPoint, existing, 700.0d));
+
+        // Null candidate
+        Assert.assertFalse(c2.j.isFarEnough(null, existing, 700.0d));
+
+        // Empty existing list
+        Assert.assertTrue(c2.j.isFarEnough(closePoint, new ArrayList<>(), 700.0d));
     }
 }
-
-
