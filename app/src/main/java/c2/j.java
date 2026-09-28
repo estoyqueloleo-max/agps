@@ -624,7 +624,8 @@ public class j implements Callable<String> {
                 && MainActivity.M0.getModel().mapViewPosition != null) {
             currentZoom = MainActivity.M0.getModel().mapViewPosition.getZoomLevel();
         }
-        boolean isZoomSufficient = (currentZoom >= 13);
+        // Markers are always visible; zoom gating is handled by l2.java observer
+        boolean isZoomSufficient = true;
 
         // 1. Draw contour polylines
         for (int contourIndex = 0; contourIndex < this.f3016b.size(); contourIndex++) {
@@ -662,7 +663,6 @@ public class j implements Callable<String> {
                 LatLong midPoint = contour.f3171a.get(pointCount / 2);
                 if (isFarEnough(midPoint, placedLabelPositions, minLabelDistanceMeters)) {
                     Marker altMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
-                    altMarker.setVisible(isZoomSufficient);
                     altMarker.requestRedraw();
                     AgpsApplication.f3580w.add(altMarker);
                     if (MainActivity.f3626n1 != null) {
@@ -680,7 +680,6 @@ public class j implements Callable<String> {
                     if (accumulatedDist >= minLabelDistanceMeters) {
                         if (isFarEnough(p2, placedLabelPositions, minLabelDistanceMeters)) {
                             Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
-                            altMarker.setVisible(isZoomSufficient);
                             altMarker.requestRedraw();
                             AgpsApplication.f3580w.add(altMarker);
                             if (MainActivity.f3626n1 != null) {
