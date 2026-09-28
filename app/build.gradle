@@ -44,8 +44,8 @@ android {
         applicationId 'com.giobat.AgpsTrackerPP.community'
         minSdkVersion 24
         targetSdkVersion 34
-        versionCode 102
-        versionName "0.2.1"
+        versionCode 103
+        versionName "0.2.2"
         multiDexEnabled true
 
         def sftpHost = System.getenv("SFTP_HOST") ?: sftpProps.getProperty("SFTP_HOST", "agps-tracker.cloud")
