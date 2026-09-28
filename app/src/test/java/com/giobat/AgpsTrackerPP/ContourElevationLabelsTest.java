@@ -269,37 +269,36 @@ public class ContourElevationLabelsTest {
         AgpsApplication.f3580w.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
-        // Create a major contour (e.g. 1200m) with short summit ring (< 350m)
-        c2.t summitContour = new c2.t(1200);
-        summitContour.f3171a.add(new LatLong(40.000, -3.000));
-        summitContour.f3171a.add(new LatLong(40.001, -3.000));
-        summitContour.f3171a.add(new LatLong(40.001, -3.001));
-        summitContour.f3171a.add(new LatLong(40.000, -3.001));
-        summitContour.f3171a.add(new LatLong(40.000, -3.000));
-        contourTask.f3016b.add(summitContour);
+        // Create a major contour (1200m) with length >= 1000m (10 points of ~111m each = ~1110m)
+        c2.t longMajorContour = new c2.t(1200);
+        for (int i = 0; i <= 10; i++) {
+            longMajorContour.f3171a.add(new LatLong(40.0 + (i * 0.001), -3.0));
+        }
+        contourTask.f3016b.add(longMajorContour);
 
         // Run d() for 1200m
         contourTask.d("test.hgt", 1200);
 
-        Assert.assertEquals("Summit contour should receive 1 altitude badge marker at midpoint", 1, AgpsApplication.f3580w.size());
+        Assert.assertEquals("Major contour >= 1000m should receive 1 marker at accumulatedDistance >= 1000m", 1, AgpsApplication.f3580w.size());
         Marker marker = AgpsApplication.f3580w.get(0);
         Assert.assertNotNull(marker);
-        Assert.assertEquals(summitContour.f3171a.get(2), marker.getLatLong());
+        Assert.assertEquals(longMajorContour.f3171a.get(9), marker.getLatLong());
 
         // Minor contour (1220m) - should not generate label markers
         AgpsApplication.f3580w.clear();
         c2.t minorContour = new c2.t(1220);
-        minorContour.f3171a.addAll(summitContour.f3171a);
+        minorContour.f3171a.addAll(longMajorContour.f3171a);
         contourTask.f3016b.clear();
         contourTask.f3016b.add(minorContour);
 
-        contourTask.d("test.hgt", 1220, false);
-        Assert.assertEquals("Minor contour without fallback should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
+        contourTask.d("test.hgt", 1220);
+        Assert.assertEquals("Minor contour (not divisible by 100) should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
 
-        // Fallback mode in flat terrain (where no multiple of 50 exists)
-        contourTask.d("test.hgt", 1240, true);
-        Assert.assertEquals("Multiple of 40 in fallback mode should generate altitude marker", 1, AgpsApplication.f3580w.size());
+        // Check o.c(15) visibility toggle
+        o.c(15);
+        Assert.assertEquals(0, AgpsApplication.f3580w.size());
     }
 }
+
 
 

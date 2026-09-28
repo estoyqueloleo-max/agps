@@ -29,7 +29,7 @@ public class l2 implements Observer {
                 MainActivity.U0 = true;
             }
             v2.e("GPS-M", this.f3042h.f3064h + " New zoom level " + ((int) newZoomLevel));
-            o.c(13);
+            o.c(15);
             boolean isOverviewZoom = MainActivity.M0.getModel().mapViewPosition.getZoomLevel() == 8;
             CopyOnWriteArrayList<Marker> overviewMarkers = AgpsApplication.x;
             if (overviewMarkers != null) {
