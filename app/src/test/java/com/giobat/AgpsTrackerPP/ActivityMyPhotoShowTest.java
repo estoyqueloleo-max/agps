@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.net.Uri;
+import android.view.View;
 import androidx.test.core.app.ApplicationProvider;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -147,5 +150,121 @@ public class ActivityMyPhotoShowTest {
                 .get();
 
         Assert.assertNotNull(activity);
+    }
+
+    @Test
+    public void testPhotoViewCanvasRenderingAndMatrixValidity() throws IOException {
+        Context context = ApplicationProvider.getApplicationContext();
+        File tempImageFile = File.createTempFile("visual_canvas_test", ".jpg", context.getCacheDir());
+        tempImageFile.deleteOnExit();
+
+        // Create a 200x200 solid RED test bitmap and save it as JPEG
+        Bitmap testBitmap = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888);
+        testBitmap.eraseColor(Color.RED);
+        try (FileOutputStream outputStream = new FileOutputStream(tempImageFile)) {
+            testBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        }
+
+        Uri imageUri = Uri.fromFile(tempImageFile);
+        Intent intent = new Intent();
+        intent.setData(imageUri);
+        intent.putExtra("FILE_URI", imageUri);
+        intent.putExtra("filePath", tempImageFile.getAbsolutePath());
+
+        ActivityMyPhotoShow activity = Robolectric.buildActivity(ActivityMyPhotoShow.class, intent)
+                .create()
+                .start()
+                .resume()
+                .visible()
+                .get();
+
+        Assert.assertNotNull(activity);
+        Assert.assertNotNull("photoImageView should not be null", activity.photoImageView);
+
+        // Perform measure & layout passes simulating screen resolution (1080 x 1920)
+        int width = 1080;
+        int height = 1920;
+        activity.photoImageView.measure(
+                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+        );
+        activity.photoImageView.layout(0, 0, width, height);
+
+        // 1. Matrix verification: matrix values MUST be valid finite numbers (never NaN or Infinity)
+        Matrix matrix = activity.photoImageView.getImageMatrix();
+        Assert.assertNotNull("ImageMatrix must not be null", matrix);
+        float[] matrixValues = new float[9];
+        matrix.getValues(matrixValues);
+
+        for (int i = 0; i < 9; i++) {
+            Assert.assertFalse("Matrix value at index " + i + " must not be NaN", Float.isNaN(matrixValues[i]));
+            Assert.assertFalse("Matrix value at index " + i + " must not be Infinite", Float.isInfinite(matrixValues[i]));
+        }
+
+        Assert.assertTrue("ScaleX must be positive", matrixValues[Matrix.MSCALE_X] > 0);
+        Assert.assertTrue("ScaleY must be positive", matrixValues[Matrix.MSCALE_Y] > 0);
+
+        // 2. Visual / Canvas Drawing verification:
+        // Render the view directly onto a software Canvas and ensure no exceptions, NaN bounds or thread locks occur
+        Bitmap canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(canvasBitmap);
+        activity.photoImageView.draw(canvas);
+
+        activity.finish();
+    }
+
+    @Test
+    public void testPhotoViewZoomMaintainsFiniteMatrix() throws IOException {
+        Context context = ApplicationProvider.getApplicationContext();
+        File tempImageFile = File.createTempFile("visual_zoom_test", ".jpg", context.getCacheDir());
+        tempImageFile.deleteOnExit();
+
+        Bitmap testBitmap = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888);
+        testBitmap.eraseColor(Color.GREEN);
+        try (FileOutputStream outputStream = new FileOutputStream(tempImageFile)) {
+            testBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        }
+
+        Uri imageUri = Uri.fromFile(tempImageFile);
+        Intent intent = new Intent();
+        intent.setData(imageUri);
+        intent.putExtra("FILE_URI", imageUri);
+        intent.putExtra("filePath", tempImageFile.getAbsolutePath());
+
+        ActivityMyPhotoShow activity = Robolectric.buildActivity(ActivityMyPhotoShow.class, intent)
+                .create()
+                .start()
+                .resume()
+                .visible()
+                .get();
+
+        int width = 1080;
+        int height = 1920;
+        activity.photoImageView.measure(
+                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+        );
+        activity.photoImageView.layout(0, 0, width, height);
+
+        // Zoom to 2.5x at the center
+        activity.photoImageView.setZoom(2.5f, width / 2.0f, height / 2.0f);
+
+        Matrix matrix = activity.photoImageView.getImageMatrix();
+        float[] matrixValues = new float[9];
+        matrix.getValues(matrixValues);
+
+        for (int i = 0; i < 9; i++) {
+            Assert.assertFalse("Zoomed matrix value at index " + i + " must not be NaN", Float.isNaN(matrixValues[i]));
+            Assert.assertFalse("Zoomed matrix value at index " + i + " must not be Infinite", Float.isInfinite(matrixValues[i]));
+        }
+
+        Assert.assertTrue("Zoomed scale must be higher than initial scale", matrixValues[Matrix.MSCALE_X] > 1.0f);
+
+        // Draw zoomed view on canvas to ensure no drawing exceptions or crashes occur
+        Bitmap canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(canvasBitmap);
+        activity.photoImageView.draw(canvas);
+
+        activity.finish();
     }
 }

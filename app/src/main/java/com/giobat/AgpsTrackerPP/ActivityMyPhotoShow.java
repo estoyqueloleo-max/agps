@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.d;
 import c2.v2;
+import com.ortiz.touchview.TouchImageView;
 import java.io.FileDescriptor;
 import java.io.InputStream;
 import java.text.DecimalFormat;
@@ -25,7 +26,7 @@ import java.util.TimeZone;
  */
 public class ActivityMyPhotoShow extends AppCompatActivity {
 
-    public ImageView photoImageView;
+    public TouchImageView photoImageView;
     public Bitmap currentBitmap = null;
     public float currentRotationDegrees = 0.0f;
 
@@ -165,7 +166,7 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         setContentView(R.layout.my_photo_show_activity);
-        this.photoImageView = (ImageView) findViewById(R.id.photo_view);
+        this.photoImageView = (TouchImageView) findViewById(R.id.photo_view);
 
         String filePathExtra = getIntent().getStringExtra("filePath");
         Uri uri = (Uri) getIntent().getParcelableExtra("FILE_URI");
