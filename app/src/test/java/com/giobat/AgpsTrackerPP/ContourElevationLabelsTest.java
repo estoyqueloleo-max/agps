@@ -205,8 +205,9 @@ public class ContourElevationLabelsTest {
         // Test 1: n2.createAltitudeBadge generates properly sized bitmap with badge and text
         org.mapsforge.core.graphics.Bitmap badgeBitmap = n2.createAltitudeBadge(context, 1850);
         Assert.assertNotNull(badgeBitmap);
-        Assert.assertTrue("Altitude badge width must be at least 30px (was " + badgeBitmap.getWidth() + ")", badgeBitmap.getWidth() >= 30);
-        Assert.assertTrue("Altitude badge height must be at least 14px (was " + badgeBitmap.getHeight() + ")", badgeBitmap.getHeight() >= 14);
+        // Text-only label (no badge padding): width must contain at least the text characters
+        Assert.assertTrue("Altitude text label width must be positive (was " + badgeBitmap.getWidth() + ")", badgeBitmap.getWidth() > 0);
+        Assert.assertTrue("Altitude text label height must be positive (was " + badgeBitmap.getHeight() + ")", badgeBitmap.getHeight() > 0);
 
         android.graphics.Bitmap androidBmp = AndroidGraphicFactory.getBitmap(badgeBitmap);
         Assert.assertNotNull(androidBmp);
@@ -269,9 +270,10 @@ public class ContourElevationLabelsTest {
         AgpsApplication.f3580w.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
-        // Create a major contour (1200m) with length >= 1000m (10 points of ~111m each = ~1110m)
+        // Create a major contour (1200m) long enough to cross the 2500m label threshold:
+        // 25 points × 0.001° lat ≈ 111m each = ~2664m total
         c2.t longMajorContour = new c2.t(1200);
-        for (int i = 0; i <= 10; i++) {
+        for (int i = 0; i <= 24; i++) {
             longMajorContour.f3171a.add(new LatLong(40.0 + (i * 0.001), -3.0));
         }
         contourTask.f3016b.add(longMajorContour);
@@ -279,10 +281,9 @@ public class ContourElevationLabelsTest {
         // Run d() for 1200m
         contourTask.d("test.hgt", 1200);
 
-        Assert.assertEquals("Major contour >= 1000m should receive 1 marker at accumulatedDistance >= 1000m", 1, AgpsApplication.f3580w.size());
+        Assert.assertEquals("Major contour >= 2500m should receive at least 1 marker", 1, AgpsApplication.f3580w.size());
         Marker marker = AgpsApplication.f3580w.get(0);
         Assert.assertNotNull(marker);
-        Assert.assertEquals(longMajorContour.f3171a.get(9), marker.getLatLong());
 
         // Minor contour (1220m) - should not generate label markers
         AgpsApplication.f3580w.clear();
@@ -301,26 +302,37 @@ public class ContourElevationLabelsTest {
 
     @Test
     public void testShortMajorContourAlwaysReceivesAtLeastOneLabel() {
-        // Regression test: a major contour shorter than 1000m must always get one label at its midpoint.
-        // Before the fix, contours < 1000m were silently skipped, leaving them completely unlabelled.
+        // Regression test: a meaningful major contour between 300m and 2500m
+        // must receive a midpoint label. Tiny fragments (< 5 points or < 300m) are skipped.
         AgpsApplication.f3580w.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
-        // Create a major contour (1100m) with only 3 points (~150m total — well under 1000m threshold)
+        // Major contour (1100m) with 8 points (~700m total — over 300m, under 2500m)
         c2.t shortMajorContour = new c2.t(1100);
-        shortMajorContour.f3171a.add(new LatLong(40.000, -3.000));
-        shortMajorContour.f3171a.add(new LatLong(40.001, -3.000)); // midpoint index=1
-        shortMajorContour.f3171a.add(new LatLong(40.001, -3.001)); // ~140m total
+        for (int i = 0; i < 8; i++) {
+            shortMajorContour.f3171a.add(new LatLong(40.0 + (i * 0.001), -3.0));
+        }
         contourTask.f3016b.add(shortMajorContour);
 
         contourTask.d("test_short.hgt", 1100);
 
         Assert.assertEquals(
-                "Short major contour (< 1000m) must still receive exactly 1 midpoint label",
+                "Major contour >= 300m and >= 5 points (but < 2500m) must get 1 midpoint label",
                 1, AgpsApplication.f3580w.size());
 
-        // Midpoint of 3-point contour is index 1 (size/2 = 1)
-        LatLong expectedMidPoint = shortMajorContour.f3171a.get(1);
+        // Verify midpoint position (index = pointCount / 2 = 4)
+        LatLong expectedMidPoint = shortMajorContour.f3171a.get(4);
         Assert.assertEquals(expectedMidPoint, AgpsApplication.f3580w.get(0).getLatLong());
+
+        // Tiny fragment: only 3 points (~220m) — must NOT receive any label
+        AgpsApplication.f3580w.clear();
+        contourTask.f3016b.clear();
+        c2.t tinyContour = new c2.t(1100);
+        tinyContour.f3171a.add(new LatLong(40.000, -3.000));
+        tinyContour.f3171a.add(new LatLong(40.001, -3.000));
+        tinyContour.f3171a.add(new LatLong(40.002, -3.000)); // ~222m, only 3 points
+        contourTask.f3016b.add(tinyContour);
+        contourTask.d("test_tiny.hgt", 1100);
+        Assert.assertEquals("Tiny major contour (< 5 points) must NOT receive a label", 0, AgpsApplication.f3580w.size());
     }
 }

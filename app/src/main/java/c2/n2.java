@@ -78,9 +78,9 @@ public class n2 {
     }
 
     /**
-     * Generates a crisp, high-contrast altitude badge for contour elevation labels.
-     * Rendered directly onto an Android Canvas to guarantee thread safety, proper dimensions,
-     * and crisp rendering on any screen density.
+     * Generates a plain text-only altitude label (no background card or border).
+     * Renders the elevation number in bold, semi-transparent brown text directly on
+     * a transparent bitmap — much less visually noisy on dense contour maps.
      */
     public static org.mapsforge.core.graphics.Bitmap createAltitudeBadge(Context context, int elevation) {
         String altText = Integer.toString(elevation);
@@ -89,48 +89,37 @@ public class n2 {
             density = 1.0f;
         }
 
-        float textSizePx = 10.0f * density;
+        float textSizePx = 9.0f * density;
         android.graphics.Paint textPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(textSizePx);
         textPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
-        textPaint.setColor(android.graphics.Color.rgb(70, 35, 15));
+        // Dark brown, slightly transparent so it blends with the map
+        textPaint.setColor(android.graphics.Color.argb(220, 80, 40, 10));
+
+        // Stroke pass for legibility against any background
+        android.graphics.Paint strokePaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        strokePaint.setTextSize(textSizePx);
+        strokePaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        strokePaint.setColor(android.graphics.Color.argb(160, 255, 255, 255));
+        strokePaint.setStyle(android.graphics.Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(2.5f * density);
 
         float textWidth = Math.max(textPaint.measureText(altText), altText.length() * (textSizePx * 0.65f));
         android.graphics.Paint.FontMetrics fm = textPaint.getFontMetrics();
-        float textHeight = Math.max(Math.abs(fm.bottom - fm.top), textSizePx * 1.15f);
+        float textHeight = Math.abs(fm.bottom - fm.top);
 
-        int padH = (int) Math.ceil(5.0f * density);
-        int padV = (int) Math.ceil(2.0f * density);
-        int w = (int) Math.ceil(textWidth + (padH * 2));
-        int h = (int) Math.ceil(textHeight + (padV * 2));
-        if (w < (int) (35 * density)) w = (int) (35 * density);
-        if (h < (int) (14 * density)) h = (int) (14 * density);
+        int w = (int) Math.ceil(textWidth + 2.0f * density);
+        int h = (int) Math.ceil(textHeight + 2.0f * density);
+        if (w < 1) w = 1;
+        if (h < 1) h = 1;
 
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
 
-        // Semi-transparent badge background with subtle rounded border
-        android.graphics.Paint bgPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
-        bgPaint.setStyle(android.graphics.Paint.Style.FILL);
-        bgPaint.setColor(android.graphics.Color.argb(225, 255, 255, 255));
-
-        android.graphics.Paint borderPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
-        borderPaint.setStyle(android.graphics.Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(1.0f * density);
-        borderPaint.setColor(android.graphics.Color.argb(160, 140, 85, 45));
-
-        android.graphics.RectF rect = new android.graphics.RectF(
-                borderPaint.getStrokeWidth() / 2.0f,
-                borderPaint.getStrokeWidth() / 2.0f,
-                w - (borderPaint.getStrokeWidth() / 2.0f),
-                h - (borderPaint.getStrokeWidth() / 2.0f));
-        float radius = 3.0f * density;
-        canvas.drawRoundRect(rect, radius, radius, bgPaint);
-        canvas.drawRoundRect(rect, radius, radius, borderPaint);
-
-        // Center altitude text in the badge
-        float x = (w - textWidth) / 2.0f;
-        float y = padV - fm.ascent;
+        // Draw white halo first, then the dark text on top
+        float x = 1.0f * density;
+        float y = -fm.ascent + 1.0f * density;
+        canvas.drawText(altText, x, y, strokePaint);
         canvas.drawText(altText, x, y, textPaint);
 
         return AndroidGraphicFactory.convertToBitmap(new BitmapDrawable(context.getResources(), bitmap));

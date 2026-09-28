@@ -632,14 +632,18 @@ public class j implements Callable<String> {
                 int offsetX = (-labelBitmap.getWidth()) / 2;
                 int offsetY = (-labelBitmap.getHeight()) / 2;
 
+                // Accumulate total length while placing labels every 2500m to avoid crowding.
                 double accumulatedDistance = 0.0d;
+                double totalLength = 0.0d;
                 boolean placedAtLeastOneLabel = false;
                 for (int p = 0; p < pointCount - 1; p++) {
                     LatLong p1 = contour.f3171a.get(p);
                     LatLong p2 = contour.f3171a.get(p + 1);
-                    accumulatedDistance += calculateDistanceMeters(p1, p2);
+                    double segmentLen = calculateDistanceMeters(p1, p2);
+                    accumulatedDistance += segmentLen;
+                    totalLength += segmentLen;
 
-                    if (accumulatedDistance >= 1000.0d) {
+                    if (accumulatedDistance >= 2500.0d) {
                         Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
                         altMarker.setVisible(isZoomSufficient);
                         altMarker.requestRedraw();
@@ -651,9 +655,9 @@ public class j implements Callable<String> {
                         placedAtLeastOneLabel = true;
                     }
                 }
-                // Guarantee at least one label per major contour, placed at its midpoint.
-                // This covers contours shorter than 1000m that would otherwise be unlabelled.
-                if (!placedAtLeastOneLabel) {
+                // Fallback: place one label at the midpoint only for contours that are long enough
+                // to be meaningful (>= 300m and >= 5 points). This avoids labelling tiny fragments.
+                if (!placedAtLeastOneLabel && pointCount >= 5 && totalLength >= 300.0d) {
                     LatLong midPoint = contour.f3171a.get(pointCount / 2);
                     Marker midMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
                     midMarker.setVisible(isZoomSufficient);
@@ -666,6 +670,7 @@ public class j implements Callable<String> {
             }
         }
     }
+
 
 
 
