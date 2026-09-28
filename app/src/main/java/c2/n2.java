@@ -89,18 +89,18 @@ public class n2 {
             density = 1.0f;
         }
 
-        float textSizePx = 9.0f * density;
+        float textSizePx = 10.0f * density;
         android.graphics.Paint textPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(textSizePx);
         textPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
-        // Dark brown, slightly transparent so it blends with the map
-        textPaint.setColor(android.graphics.Color.argb(220, 80, 40, 10));
+        // Dark brown, fully opaque so numbers stand out crisply
+        textPaint.setColor(android.graphics.Color.rgb(80, 40, 20));
 
-        // Stroke pass for legibility against any background
+        // White stroke halo for legibility against contour lines and terrain
         android.graphics.Paint strokePaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         strokePaint.setTextSize(textSizePx);
         strokePaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
-        strokePaint.setColor(android.graphics.Color.argb(160, 255, 255, 255));
+        strokePaint.setColor(android.graphics.Color.argb(220, 255, 255, 255));
         strokePaint.setStyle(android.graphics.Paint.Style.STROKE);
         strokePaint.setStrokeWidth(2.5f * density);
 
@@ -108,8 +108,10 @@ public class n2 {
         android.graphics.Paint.FontMetrics fm = textPaint.getFontMetrics();
         float textHeight = Math.abs(fm.bottom - fm.top);
 
-        int w = (int) Math.ceil(textWidth + 2.0f * density);
-        int h = (int) Math.ceil(textHeight + 2.0f * density);
+        int padH = (int) Math.ceil(3.0f * density);
+        int padV = (int) Math.ceil(2.0f * density);
+        int w = (int) Math.ceil(textWidth) + (padH * 2);
+        int h = (int) Math.ceil(textHeight) + (padV * 2);
         if (w < 1) w = 1;
         if (h < 1) h = 1;
 
@@ -117,8 +119,8 @@ public class n2 {
         Canvas canvas = new Canvas(bitmap);
 
         // Draw white halo first, then the dark text on top
-        float x = 1.0f * density;
-        float y = -fm.ascent + 1.0f * density;
+        float x = padH;
+        float y = padV - fm.ascent;
         canvas.drawText(altText, x, y, strokePaint);
         canvas.drawText(altText, x, y, textPaint);
 

@@ -281,7 +281,7 @@ public class ContourElevationLabelsTest {
         // Run d() for 1200m
         contourTask.d("test.hgt", 1200);
 
-        Assert.assertEquals("Major contour >= 2500m should receive at least 1 marker", 1, AgpsApplication.f3580w.size());
+        Assert.assertTrue("Major contour >= 2500m should receive spaced markers", AgpsApplication.f3580w.size() >= 1);
         Marker marker = AgpsApplication.f3580w.get(0);
         Assert.assertNotNull(marker);
 
@@ -295,44 +295,62 @@ public class ContourElevationLabelsTest {
         contourTask.d("test.hgt", 1220);
         Assert.assertEquals("Minor contour (not divisible by 100) should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
 
-        // Check o.c(15) visibility toggle
-        o.c(15);
+        // Check o.c(13) visibility toggle
+        o.c(13);
         Assert.assertEquals(0, AgpsApplication.f3580w.size());
     }
 
     @Test
-    public void testShortMajorContourAlwaysReceivesAtLeastOneLabel() {
-        // Regression test: a meaningful major contour between 300m and 2500m
-        // must receive a midpoint label. Tiny fragments (< 5 points or < 300m) are skipped.
+    public void testSpatialDeduplicationPreventsClusteredLabels() {
+        // Regression test for the issue where dozens of small segments around a hill
+        // each got a label, resulting in 30 stacked labels.
+        // Spatial de-duplication must ensure only 1 label is placed per cluster (< 700m).
         AgpsApplication.f3580w.clear();
         c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
 
-        // Major contour (1100m) with 8 points (~700m total — over 300m, under 2500m)
-        c2.t shortMajorContour = new c2.t(1100);
-        for (int i = 0; i < 8; i++) {
-            shortMajorContour.f3171a.add(new LatLong(40.0 + (i * 0.001), -3.0));
+        // Add 5 segments around the same hill (all within 200m of each other)
+        for (int s = 0; s < 5; s++) {
+            c2.t segment = new c2.t(800);
+            for (int p = 0; p < 4; p++) {
+                segment.f3171a.add(new LatLong(40.000 + (s * 0.0003) + (p * 0.00005), -3.000));
+            }
+            contourTask.f3016b.add(segment);
         }
-        contourTask.f3016b.add(shortMajorContour);
 
-        contourTask.d("test_short.hgt", 1100);
+        // Add 1 segment on another hill 2km away
+        c2.t farSegment = new c2.t(800);
+        for (int p = 0; p < 4; p++) {
+            farSegment.f3171a.add(new LatLong(40.020 + (p * 0.0001), -3.000));
+        }
+        contourTask.f3016b.add(farSegment);
 
-        Assert.assertEquals(
-                "Major contour >= 300m and >= 5 points (but < 2500m) must get 1 midpoint label",
-                1, AgpsApplication.f3580w.size());
+        contourTask.d("test_dedup.hgt", 800);
 
-        // Verify midpoint position (index = pointCount / 2 = 4)
-        LatLong expectedMidPoint = shortMajorContour.f3171a.get(4);
-        Assert.assertEquals(expectedMidPoint, AgpsApplication.f3580w.get(0).getLatLong());
+        // Hill 1 should have exactly 1 label, far hill should have exactly 1 label = 2 total
+        Assert.assertEquals("5 adjacent segments should only produce 1 label, plus 1 for far hill",
+                2, AgpsApplication.f3580w.size());
+    }
 
-        // Tiny fragment: only 3 points (~220m) — must NOT receive any label
-        AgpsApplication.f3580w.clear();
-        contourTask.f3016b.clear();
-        c2.t tinyContour = new c2.t(1100);
-        tinyContour.f3171a.add(new LatLong(40.000, -3.000));
-        tinyContour.f3171a.add(new LatLong(40.001, -3.000));
-        tinyContour.f3171a.add(new LatLong(40.002, -3.000)); // ~222m, only 3 points
-        contourTask.f3016b.add(tinyContour);
-        contourTask.d("test_tiny.hgt", 1100);
-        Assert.assertEquals("Tiny major contour (< 5 points) must NOT receive a label", 0, AgpsApplication.f3580w.size());
+    @Test
+    public void testIsFarEnoughHelper() {
+        List<LatLong> existing = new ArrayList<>();
+        LatLong p1 = new LatLong(40.0, -3.0);
+        existing.add(p1);
+
+        // Candidate within ~111m (< 700m)
+        LatLong closePoint = new LatLong(40.001, -3.0);
+        Assert.assertFalse("Point 111m away should NOT be far enough with 700m threshold",
+                c2.j.isFarEnough(closePoint, existing, 700.0d));
+
+        // Candidate ~2220m away (> 700m)
+        LatLong farPoint = new LatLong(40.02, -3.0);
+        Assert.assertTrue("Point 2220m away should be far enough with 700m threshold",
+                c2.j.isFarEnough(farPoint, existing, 700.0d));
+
+        // Null candidate
+        Assert.assertFalse(c2.j.isFarEnough(null, existing, 700.0d));
+
+        // Empty existing list
+        Assert.assertTrue(c2.j.isFarEnough(closePoint, new ArrayList<>(), 700.0d));
     }
 }

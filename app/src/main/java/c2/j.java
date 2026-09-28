@@ -571,7 +571,7 @@ public class j implements Callable<String> {
                 }
                 u2Var.f3196b.release();
             }
-            o.c(15);
+            o.c(13);
             try {
                 if (MainActivity.M0 != null && MainActivity.M0.getLayerManager() != null) {
                     MainActivity.M0.getLayerManager().redrawLayers();
@@ -583,7 +583,7 @@ public class j implements Callable<String> {
                 MainActivity.f3625m1.a("showWindowIsolines:" + e8);
             }
         }
-        v2.e("GPS-M", "Contour Task ended");
+        v2.e("GPS-M", "Contour Task ended: total label markers = " + AgpsApplication.f3580w.size());
         return "OK";
     }
 
@@ -599,17 +599,34 @@ public class j implements Callable<String> {
         return Math.atan2(Math.sqrt(a), Math.sqrt(1.0d - a)) * 2.0d * 6378137.0d;
     }
 
+    public static boolean isFarEnough(LatLong candidate, List<LatLong> existingPoints, double minDistanceMeters) {
+        if (candidate == null) {
+            return false;
+        }
+        for (int i = 0; i < existingPoints.size(); i++) {
+            LatLong existing = existingPoints.get(i);
+            if (calculateDistanceMeters(candidate, existing) < minDistanceMeters) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public final void d(String demName, int elevation) {
         boolean isMajor = (elevation % 100 == 0);
         org.mapsforge.core.graphics.Paint minorContourPaint = n2.a(Color.argb(180, 140, 85, 45), 2, 2);
         org.mapsforge.core.graphics.Paint majorContourPaint = n2.a(Color.argb(230, 80, 40, 20), 3, 2);
         org.mapsforge.core.graphics.Paint contourPaint = isMajor ? majorContourPaint : minorContourPaint;
 
-        boolean isZoomSufficient = (MainActivity.M0 != null
+        int currentZoom = -1;
+        if (MainActivity.M0 != null
                 && MainActivity.M0.getModel() != null
-                && MainActivity.M0.getModel().mapViewPosition != null
-                && MainActivity.M0.getModel().mapViewPosition.getZoomLevel() >= 15);
+                && MainActivity.M0.getModel().mapViewPosition != null) {
+            currentZoom = MainActivity.M0.getModel().mapViewPosition.getZoomLevel();
+        }
+        boolean isZoomSufficient = (currentZoom >= 13);
 
+        // 1. Draw contour polylines
         for (int contourIndex = 0; contourIndex < this.f3016b.size(); contourIndex++) {
             t contour = this.f3016b.get(contourIndex);
             if (contour.f3171a == null || contour.f3171a.isEmpty()) {
@@ -621,53 +638,62 @@ public class j implements Callable<String> {
             if (MainActivity.f3626n1 != null) {
                 MainActivity.f3626n1.a(polyline);
             }
+        }
 
-            if (isMajor) {
-                int pointCount = contour.f3171a.size();
-                if (pointCount < 2) {
+        // 2. Place elevation labels for major contours (every 100m)
+        // Multiple small segments belonging to the same contour line or hill ring will not
+        // receive clustered labels because we enforce a minimum spatial distance (700m) between placed labels.
+        if (isMajor && !this.f3016b.isEmpty()) {
+            final double minLabelDistanceMeters = 700.0d;
+            List<LatLong> placedLabelPositions = new ArrayList<>();
+            Bitmap labelBitmap = n2.createAltitudeBadge(this.f3018d, elevation);
+            int offsetX = (-labelBitmap.getWidth()) / 2;
+            int offsetY = (-labelBitmap.getHeight()) / 2;
+
+            for (int contourIndex = 0; contourIndex < this.f3016b.size(); contourIndex++) {
+                t contour = this.f3016b.get(contourIndex);
+                if (contour.f3171a == null || contour.f3171a.size() < 3) {
                     continue;
                 }
-                int altValue = (int) contour.f3172b;
-                Bitmap labelBitmap = n2.createAltitudeBadge(this.f3018d, altValue);
-                int offsetX = (-labelBitmap.getWidth()) / 2;
-                int offsetY = (-labelBitmap.getHeight()) / 2;
 
-                // Accumulate total length while placing labels every 2500m to avoid crowding.
-                double accumulatedDistance = 0.0d;
-                double totalLength = 0.0d;
-                boolean placedAtLeastOneLabel = false;
+                int pointCount = contour.f3171a.size();
+
+                // Candidate 1: midpoint of this contour segment
+                LatLong midPoint = contour.f3171a.get(pointCount / 2);
+                if (isFarEnough(midPoint, placedLabelPositions, minLabelDistanceMeters)) {
+                    Marker altMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
+                    altMarker.setVisible(isZoomSufficient);
+                    altMarker.requestRedraw();
+                    AgpsApplication.f3580w.add(altMarker);
+                    if (MainActivity.f3626n1 != null) {
+                        MainActivity.f3626n1.a(altMarker);
+                    }
+                    placedLabelPositions.add(midPoint);
+                }
+
+                // Candidate 2: along long contour segments, space additional labels
+                double accumulatedDist = 0.0d;
                 for (int p = 0; p < pointCount - 1; p++) {
                     LatLong p1 = contour.f3171a.get(p);
                     LatLong p2 = contour.f3171a.get(p + 1);
-                    double segmentLen = calculateDistanceMeters(p1, p2);
-                    accumulatedDistance += segmentLen;
-                    totalLength += segmentLen;
-
-                    if (accumulatedDistance >= 2500.0d) {
-                        Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
-                        altMarker.setVisible(isZoomSufficient);
-                        altMarker.requestRedraw();
-                        AgpsApplication.f3580w.add(altMarker);
-                        if (MainActivity.f3626n1 != null) {
-                            MainActivity.f3626n1.a(altMarker);
+                    accumulatedDist += calculateDistanceMeters(p1, p2);
+                    if (accumulatedDist >= minLabelDistanceMeters) {
+                        if (isFarEnough(p2, placedLabelPositions, minLabelDistanceMeters)) {
+                            Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
+                            altMarker.setVisible(isZoomSufficient);
+                            altMarker.requestRedraw();
+                            AgpsApplication.f3580w.add(altMarker);
+                            if (MainActivity.f3626n1 != null) {
+                                MainActivity.f3626n1.a(altMarker);
+                            }
+                            placedLabelPositions.add(p2);
                         }
-                        accumulatedDistance = 0.0d;
-                        placedAtLeastOneLabel = true;
-                    }
-                }
-                // Fallback: place one label at the midpoint only for contours that are long enough
-                // to be meaningful (>= 300m and >= 5 points). This avoids labelling tiny fragments.
-                if (!placedAtLeastOneLabel && pointCount >= 5 && totalLength >= 300.0d) {
-                    LatLong midPoint = contour.f3171a.get(pointCount / 2);
-                    Marker midMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
-                    midMarker.setVisible(isZoomSufficient);
-                    midMarker.requestRedraw();
-                    AgpsApplication.f3580w.add(midMarker);
-                    if (MainActivity.f3626n1 != null) {
-                        MainActivity.f3626n1.a(midMarker);
+                        accumulatedDist = 0.0d;
                     }
                 }
             }
+            v2.e("GPS-M", "Major contour " + elevation + "m: placed " + placedLabelPositions.size()
+                    + " labels (map zoom " + currentZoom + ", visible=" + isZoomSufficient + ")");
         }
     }
 
