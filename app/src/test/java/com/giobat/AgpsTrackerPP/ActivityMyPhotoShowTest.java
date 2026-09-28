@@ -1,9 +1,15 @@
 package com.giobat.AgpsTrackerPP;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
+import androidx.test.core.app.ApplicationProvider;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +58,66 @@ public class ActivityMyPhotoShowTest {
         Assert.assertNotNull(rotated);
         Assert.assertEquals(100, rotated.getWidth());
         Assert.assertEquals(100, rotated.getHeight());
+    }
+
+    @Test
+    public void testDecodeSampledBitmapFromRealJpegUri() throws IOException {
+        Context context = ApplicationProvider.getApplicationContext();
+        File tempImageFile = File.createTempFile("sample_route_photo", ".jpg", context.getCacheDir());
+        tempImageFile.deleteOnExit();
+
+        Bitmap testBitmap = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888);
+        testBitmap.eraseColor(Color.BLUE);
+        try (FileOutputStream outputStream = new FileOutputStream(tempImageFile)) {
+            testBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        }
+
+        Uri imageUri = Uri.fromFile(tempImageFile);
+        Bitmap decoded = ActivityMyPhotoShow.decodeSampledBitmapFromUri(context, imageUri, 2048, 2048);
+        Assert.assertNotNull("Decoded bitmap must not be null when reading a valid JPEG URI", decoded);
+        Assert.assertTrue(decoded.getWidth() > 0);
+        Assert.assertTrue(decoded.getHeight() > 0);
+    }
+
+    @Test
+    public void testActivityCreationWithRealImageRendersAndRotates() throws IOException {
+        Context context = ApplicationProvider.getApplicationContext();
+        File tempImageFile = File.createTempFile("photo_render_test", ".jpg", context.getCacheDir());
+        tempImageFile.deleteOnExit();
+
+        Bitmap testBitmap = Bitmap.createBitmap(300, 200, Bitmap.Config.ARGB_8888);
+        testBitmap.eraseColor(Color.RED);
+        try (FileOutputStream outputStream = new FileOutputStream(tempImageFile)) {
+            testBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        }
+
+        Uri imageUri = Uri.fromFile(tempImageFile);
+        Intent intent = new Intent();
+        intent.setData(imageUri);
+        intent.putExtra("FILE_URI", imageUri);
+        intent.putExtra("filePath", tempImageFile.getAbsolutePath());
+
+        ActivityMyPhotoShow activity = Robolectric.buildActivity(ActivityMyPhotoShow.class, intent)
+                .create()
+                .start()
+                .resume()
+                .visible()
+                .get();
+
+        Assert.assertNotNull(activity);
+        Assert.assertNotNull("Current bitmap in activity must be loaded and non-null", activity.currentBitmap);
+        Assert.assertTrue(activity.currentBitmap.getWidth() > 0);
+        Assert.assertTrue(activity.currentBitmap.getHeight() > 0);
+        Assert.assertNotNull("photoImageView should have drawable attached", activity.photoImageView.getDrawable());
+
+        // Test rotating photo
+        activity.onClickRotate(null);
+        Assert.assertEquals(90.0f, activity.currentRotationDegrees, 0.01f);
+        Assert.assertNotNull(activity.currentBitmap);
+        Assert.assertTrue(activity.currentBitmap.getWidth() > 0);
+        Assert.assertTrue(activity.currentBitmap.getHeight() > 0);
+
+        activity.finish();
     }
 
     @Test

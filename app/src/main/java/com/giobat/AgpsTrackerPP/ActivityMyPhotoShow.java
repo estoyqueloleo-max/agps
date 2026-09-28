@@ -26,6 +26,7 @@ import java.util.TimeZone;
 public class ActivityMyPhotoShow extends AppCompatActivity {
 
     public ImageView photoImageView;
+    public Bitmap currentBitmap = null;
     public float currentRotationDegrees = 0.0f;
 
     public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
@@ -45,6 +46,8 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
         if (context == null || uri == null) {
             return null;
         }
+
+        // 1. Primary path: Decode via ParcelFileDescriptor with offset rewind
         try (ParcelFileDescriptor parcelFileDescriptor = context.getContentResolver().openFileDescriptor(uri, "r")) {
             if (parcelFileDescriptor != null) {
                 FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
@@ -56,11 +59,45 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
                 options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
                 options.inJustDecodeBounds = false;
 
-                return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+                // Rewind file descriptor offset back to 0 before the actual decoding pass
+                try {
+                    android.system.Os.lseek(fileDescriptor, 0, android.system.OsConstants.SEEK_SET);
+                } catch (Throwable seekException) {
+                    v2.e("GPS-M", "Notice: FileDescriptor not seekable, fallback will be used if needed: " + seekException);
+                }
+
+                Bitmap decodedBitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+                if (decodedBitmap != null) {
+                    return decodedBitmap;
+                }
             }
-        } catch (Throwable t) {
-            v2.e("GPS-M", "Error decoding photo bitmap from URI: " + t);
+        } catch (Throwable parcelException) {
+            v2.e("GPS-M", "Error decoding photo bitmap via ParcelFileDescriptor: " + parcelException);
         }
+
+        // 2. Resilient fallback: Decode using two consecutive InputStreams from ContentResolver
+        try {
+            BitmapFactory.Options streamOptions = new BitmapFactory.Options();
+            streamOptions.inJustDecodeBounds = true;
+            try (InputStream boundsStream = context.getContentResolver().openInputStream(uri)) {
+                if (boundsStream != null) {
+                    BitmapFactory.decodeStream(boundsStream, null, streamOptions);
+                }
+            }
+
+            if (streamOptions.outWidth > 0 && streamOptions.outHeight > 0) {
+                streamOptions.inSampleSize = calculateInSampleSize(streamOptions, reqWidth, reqHeight);
+                streamOptions.inJustDecodeBounds = false;
+                try (InputStream contentStream = context.getContentResolver().openInputStream(uri)) {
+                    if (contentStream != null) {
+                        return BitmapFactory.decodeStream(contentStream, null, streamOptions);
+                    }
+                }
+            }
+        } catch (Throwable streamException) {
+            v2.e("GPS-M", "Error decoding photo bitmap via InputStream fallback: " + streamException);
+        }
+
         return null;
     }
 
@@ -79,20 +116,20 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
             if (inputStream != null) {
                 return new u0.a(inputStream).q();
             }
-        } catch (Throwable t) {
-            v2.e("GPS-M", "Error reading EXIF orientation: " + t);
+        } catch (Throwable orientationException) {
+            v2.e("GPS-M", "Error reading EXIF orientation: " + orientationException);
         }
         return 0;
     }
 
     public static long y(u0.a exif) {
-        String strB = a2.e.b(exif.f("GPSDateStamp"), " ", exif.f("GPSTimeStamp"));
+        String dateTimeGpsString = a2.e.b(exif.f("GPSDateStamp"), " ", exif.f("GPSTimeStamp"));
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US);
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
-            return simpleDateFormat.parse(strB).getTime();
-        } catch (Exception e8) {
-            d.c("EXIF Error reading gps time:", e8, "GPS-M");
+            return simpleDateFormat.parse(dateTimeGpsString).getTime();
+        } catch (Exception parseException) {
+            d.c("EXIF Error reading gps time:", parseException, "GPS-M");
             return 0L;
         }
     }
@@ -111,9 +148,15 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
     }
 
     public void onClickRotate(View view) {
-        float nextRotation = this.currentRotationDegrees + 90.0f;
-        this.currentRotationDegrees = nextRotation;
-        if (this.photoImageView != null) {
+        if (this.currentBitmap != null) {
+            this.currentBitmap = z(this.currentBitmap, 90.0f);
+            this.currentRotationDegrees = (this.currentRotationDegrees + 90.0f) % 360.0f;
+            if (this.photoImageView != null) {
+                this.photoImageView.setImageBitmap(this.currentBitmap);
+            }
+        } else if (this.photoImageView != null) {
+            float nextRotation = this.currentRotationDegrees + 90.0f;
+            this.currentRotationDegrees = nextRotation;
             this.photoImageView.setRotation(nextRotation);
         }
     }
@@ -156,17 +199,18 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
                     if (orientationDegrees != 0) {
                         bitmap = z(bitmap, orientationDegrees);
                     }
+                    this.currentBitmap = bitmap;
                     if (this.photoImageView != null) {
                         this.photoImageView.setImageBitmap(bitmap);
                     }
                     this.currentRotationDegrees = orientationDegrees;
                 }
-            } catch (Throwable t) {
-                v2.e("GPS-M", "Error loading photo image: " + t);
+            } catch (Throwable loadException) {
+                v2.e("GPS-M", "Error loading photo image: " + loadException);
             }
 
-            TextView textView = (TextView) findViewById(R.id.photo_text_view);
-            if (textView != null) {
+            TextView photoDetailsTextView = (TextView) findViewById(R.id.photo_text_view);
+            if (photoDetailsTextView != null) {
                 try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
                     if (inputStream != null) {
                         u0.a exif = new u0.a(inputStream);
@@ -185,11 +229,11 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
                                     + "\n" + getString(R.string.longitude) + " " + coordFormat.format(latLon[1]) + "°";
                         }
                         DecimalFormat altFormat = new DecimalFormat("00");
-                        u0.a.d altAttr = exif.h("GPSAltitude");
+                        u0.a.d altitudeAttribute = exif.h("GPSAltitude");
                         double altitudeMeters = -1.0d;
-                        if (altAttr != null) {
+                        if (altitudeAttribute != null) {
                             try {
-                                altitudeMeters = altAttr.g(exif.f18208h);
+                                altitudeMeters = altitudeAttribute.g(exif.f18208h);
                             } catch (NumberFormatException ignored) {
                             }
                         }
@@ -206,12 +250,21 @@ public class ActivityMyPhotoShow extends AppCompatActivity {
                         } else {
                             altText = altText + altFormat.format(MainActivity.W(finalAltitude)) + MainActivity.y();
                         }
-                        textView.setText(altText);
+                        photoDetailsTextView.setText(altText);
                     }
-                } catch (Throwable t) {
-                    v2.e("GPS-M", "Error reading photo EXIF attributes: " + t);
+                } catch (Throwable exifException) {
+                    v2.e("GPS-M", "Error reading photo EXIF attributes: " + exifException);
                 }
             }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (this.currentBitmap != null && !this.currentBitmap.isRecycled()) {
+            this.currentBitmap.recycle();
+            this.currentBitmap = null;
         }
     }
 }
