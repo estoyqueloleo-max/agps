@@ -30,9 +30,33 @@ public class n2 {
     }
 
     public static org.mapsforge.core.graphics.Bitmap b(Context context, View view) {
-        int widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-        int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-        view.measure(widthSpec, heightSpec);
+        if (view instanceof android.widget.TextView) {
+            android.widget.TextView textView = (android.widget.TextView) view;
+            CharSequence text = textView.getText();
+            float textWidth = 0.0f;
+            if (text != null && text.length() > 0) {
+                textWidth = textView.getPaint().measureText(text.toString());
+            }
+            float density = context.getResources().getDisplayMetrics().density;
+            if (density <= 0.0f) {
+                density = 1.0f;
+            }
+            float fallbackWidth = (text != null && text.length() > 0) ? text.length() * (textView.getTextSize() * 0.65f) : 0.0f;
+            textWidth = Math.max(textWidth, fallbackWidth);
+
+            int minW = (int) Math.ceil(textWidth + textView.getCompoundPaddingLeft() + textView.getCompoundPaddingRight());
+            android.graphics.Paint.FontMetrics fm = textView.getPaint().getFontMetrics();
+            float fontHeight = Math.max(Math.abs(fm.bottom - fm.top), textView.getTextSize() * 1.1f);
+            int minH = (int) Math.ceil(fontHeight + textView.getCompoundPaddingTop() + textView.getCompoundPaddingBottom());
+
+            int widthSpec = View.MeasureSpec.makeMeasureSpec(Math.max(minW, (int) (30 * density)), View.MeasureSpec.EXACTLY);
+            int heightSpec = View.MeasureSpec.makeMeasureSpec(Math.max(minH, (int) (14 * density)), View.MeasureSpec.EXACTLY);
+            view.measure(widthSpec, heightSpec);
+        } else {
+            int widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+            int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+            view.measure(widthSpec, heightSpec);
+        }
         int w = view.getMeasuredWidth();
         int h = view.getMeasuredHeight();
         if (w <= 0) {
@@ -52,4 +76,64 @@ public class n2 {
         view.draw(canvas);
         return AndroidGraphicFactory.convertToBitmap(new BitmapDrawable(context.getResources(), bitmapCreateBitmap));
     }
+
+    /**
+     * Generates a crisp, high-contrast altitude badge for contour elevation labels.
+     * Rendered directly onto an Android Canvas to guarantee thread safety, proper dimensions,
+     * and crisp rendering on any screen density.
+     */
+    public static org.mapsforge.core.graphics.Bitmap createAltitudeBadge(Context context, int elevation) {
+        String altText = Integer.toString(elevation);
+        float density = context.getResources().getDisplayMetrics().density;
+        if (density <= 0.0f) {
+            density = 1.0f;
+        }
+
+        float textSizePx = 10.0f * density;
+        android.graphics.Paint textPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        textPaint.setTextSize(textSizePx);
+        textPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        textPaint.setColor(android.graphics.Color.rgb(70, 35, 15));
+
+        float textWidth = Math.max(textPaint.measureText(altText), altText.length() * (textSizePx * 0.65f));
+        android.graphics.Paint.FontMetrics fm = textPaint.getFontMetrics();
+        float textHeight = Math.max(Math.abs(fm.bottom - fm.top), textSizePx * 1.15f);
+
+        int padH = (int) Math.ceil(5.0f * density);
+        int padV = (int) Math.ceil(2.0f * density);
+        int w = (int) Math.ceil(textWidth + (padH * 2));
+        int h = (int) Math.ceil(textHeight + (padV * 2));
+        if (w < (int) (35 * density)) w = (int) (35 * density);
+        if (h < (int) (14 * density)) h = (int) (14 * density);
+
+        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        // Semi-transparent badge background with subtle rounded border
+        android.graphics.Paint bgPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        bgPaint.setStyle(android.graphics.Paint.Style.FILL);
+        bgPaint.setColor(android.graphics.Color.argb(225, 255, 255, 255));
+
+        android.graphics.Paint borderPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setStyle(android.graphics.Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(1.0f * density);
+        borderPaint.setColor(android.graphics.Color.argb(160, 140, 85, 45));
+
+        android.graphics.RectF rect = new android.graphics.RectF(
+                borderPaint.getStrokeWidth() / 2.0f,
+                borderPaint.getStrokeWidth() / 2.0f,
+                w - (borderPaint.getStrokeWidth() / 2.0f),
+                h - (borderPaint.getStrokeWidth() / 2.0f));
+        float radius = 3.0f * density;
+        canvas.drawRoundRect(rect, radius, radius, bgPaint);
+        canvas.drawRoundRect(rect, radius, radius, borderPaint);
+
+        // Center altitude text in the badge
+        float x = (w - textWidth) / 2.0f;
+        float y = padV - fm.ascent;
+        canvas.drawText(altText, x, y, textPaint);
+
+        return AndroidGraphicFactory.convertToBitmap(new BitmapDrawable(context.getResources(), bitmap));
+    }
 }
+

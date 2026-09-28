@@ -538,43 +538,52 @@ public class j implements Callable<String> {
             }
             short[][] sArr3 = sArr;
             v2.e("GPS-M", "DEM  File  Loaded:" + MainActivity.b0(this.f3019e.f3086b));
-            int i10 = (s7 - (s7 % 20)) + (-20);
-            int i11 = (s8 - (s8 % 20)) + 20;
+            int minContourElevation = (s7 - (s7 % 20)) + (-20);
+            int maxContourElevation = (s8 - (s8 % 20)) + 20;
+            boolean hasMultipleOf50 = false;
+            for (int ele = maxContourElevation; ele >= minContourElevation; ele -= 20) {
+                if (ele % 50 == 0) {
+                    hasMultipleOf50 = true;
+                    break;
+                }
+            }
+            int currentContourElevation = maxContourElevation;
             this.f3016b.clear();
-            while (i11 >= i10) {
+            while (currentContourElevation >= minContourElevation) {
                 this.f3015a.clear();
-                short[][] sArr4 = sArr3;
-                a(sArr4, iFloor2, iFloor4, (short) i11);
+                short[][] elevationMatrix = sArr3;
+                a(elevationMatrix, iFloor2, iFloor4, (short) currentContourElevation);
                 this.f3016b.clear();
                 for (List<u> list : this.f3015a) {
-                    t tVar = new t(i11);
+                    t tVar = new t(currentContourElevation);
                     Iterator<u> it = list.iterator();
                     while (it.hasNext()) {
-                        tVar.f3171a.add(b(it.next(), sArr4, aVar3, i11));
+                        tVar.f3171a.add(b(it.next(), elevationMatrix, aVar3, currentContourElevation));
                     }
                     this.f3016b.add(tVar);
                 }
-                if (i11 == i10) {
-                    e(this.f3019e.f3086b, i11);
+                if (currentContourElevation == minContourElevation) {
+                    e(this.f3019e.f3086b, currentContourElevation);
                 } else {
-                    d(this.f3019e.f3086b, i11);
+                    d(this.f3019e.f3086b, currentContourElevation, !hasMultipleOf50);
                 }
-                i11 -= 20;
-                sArr3 = sArr4;
+                currentContourElevation -= 20;
+                sArr3 = elevationMatrix;
             }
             randomAccessFile.close();
             u2 u2Var = MainActivity.f3626n1;
-            Objects.requireNonNull(u2Var);
-            // Acquire semaphore only to protect any Layers list mutation (none here),
-            // then release BEFORE calling redrawLayers() to avoid deadlock with the
-            // UI thread which also waits on this semaphore.
-            try {
-                u2Var.f3196b.acquire();
-            } catch (Exception unused) {
+            if (u2Var != null) {
+                try {
+                    u2Var.f3196b.acquire();
+                } catch (Exception unused) {
+                }
+                u2Var.f3196b.release();
             }
-            u2Var.f3196b.release();
+            o.c(13);
             try {
-                MainActivity.M0.getLayerManager().redrawLayers();
+                if (MainActivity.M0 != null && MainActivity.M0.getLayerManager() != null) {
+                    MainActivity.M0.getLayerManager().redrawLayers();
+                }
             } catch (Exception unused2) {
             }
         } catch (IOException e8) {
@@ -582,69 +591,112 @@ public class j implements Callable<String> {
                 MainActivity.f3625m1.a("showWindowIsolines:" + e8);
             }
         }
-        o.c(13);
         v2.e("GPS-M", "Contour Task ended");
         return "OK";
     }
 
+    public static double calculateDistanceMeters(LatLong pt1, LatLong pt2) {
+        if (pt1 == null || pt2 == null) {
+            return 0.0d;
+        }
+        double dLat = Math.toRadians(pt2.latitude - pt1.latitude);
+        double dLon = Math.toRadians(pt2.longitude - pt1.longitude);
+        double sinHalfLat = Math.sin(dLat / 2.0d);
+        double sinHalfLon = Math.sin(dLon / 2.0d);
+        double a = (sinHalfLat * sinHalfLat) + (sinHalfLon * sinHalfLon * Math.cos(Math.toRadians(pt1.latitude)) * Math.cos(Math.toRadians(pt2.latitude)));
+        return Math.atan2(Math.sqrt(a), Math.sqrt(1.0d - a)) * 2.0d * 6378137.0d;
+    }
+
     public final void d(String demName, int elevation) {
+        d(demName, elevation, false);
+    }
+
+    public final void d(String demName, int elevation, boolean fallbackToMultiplesOf40) {
+        boolean isMajor = (elevation % 100 == 0) || (elevation % 50 == 0) || (fallbackToMultiplesOf40 && (elevation % 40 == 0));
         org.mapsforge.core.graphics.Paint minorContourPaint = n2.a(Color.argb(180, 140, 85, 45), 2, 2);
         org.mapsforge.core.graphics.Paint majorContourPaint = n2.a(Color.argb(230, 80, 40, 20), 3, 2);
-        for (int i = 0; i < this.f3016b.size(); i++) {
-            t contour = this.f3016b.get(i);
-            boolean isMajor = (contour.f3172b % 50 == 0);
-            Polyline polyline = new Polyline(isMajor ? majorContourPaint : minorContourPaint, AndroidGraphicFactory.INSTANCE);
+        org.mapsforge.core.graphics.Paint contourPaint = isMajor ? majorContourPaint : minorContourPaint;
+
+        boolean isZoomSufficient = (MainActivity.M0 != null
+                && MainActivity.M0.getModel() != null
+                && MainActivity.M0.getModel().mapViewPosition != null
+                && MainActivity.M0.getModel().mapViewPosition.getZoomLevel() >= 13);
+
+        for (int contourIndex = 0; contourIndex < this.f3016b.size(); contourIndex++) {
+            t contour = this.f3016b.get(contourIndex);
+            if (contour.f3171a == null || contour.f3171a.isEmpty()) {
+                continue;
+            }
+            Polyline polyline = new Polyline(contourPaint, AndroidGraphicFactory.INSTANCE);
             polyline.setPoints(contour.f3171a);
             o.demOverlayLayers.add(polyline);
-            MainActivity.f3626n1.a(polyline);
+            if (MainActivity.f3626n1 != null) {
+                MainActivity.f3626n1.a(polyline);
+            }
 
-            if (isMajor && contour.f3171a != null && !contour.f3171a.isEmpty()) {
+            if (isMajor) {
                 int pointCount = contour.f3171a.size();
-                int pointIdx = 0;
-                double accumulatedDistance = 0.0d;
-                boolean isVisible = (MainActivity.M0 != null
-                        && MainActivity.M0.getModel() != null
-                        && MainActivity.M0.getModel().mapViewPosition != null
-                        && MainActivity.M0.getModel().mapViewPosition.getZoomLevel() >= 13);
+                if (pointCount < 2) {
+                    continue;
+                }
+                double totalLength = 0.0d;
+                for (int p = 0; p < pointCount - 1; p++) {
+                    totalLength += calculateDistanceMeters(contour.f3171a.get(p), contour.f3171a.get(p + 1));
+                }
 
-                while (pointIdx < pointCount - 1) {
-                    LatLong pt1 = contour.f3171a.get(pointIdx);
-                    int nextIdx = pointIdx + 1;
-                    LatLong pt2 = contour.f3171a.get(nextIdx);
-                    Objects.requireNonNull(pt1);
-                    double dLat = Math.toRadians(pt2.latitude - pt1.latitude);
-                    double dLon = Math.toRadians(pt2.longitude - pt1.longitude);
-                    double sinHalfLat = Math.sin(dLat / 2.0d);
-                    double sinHalfLon = Math.sin(dLon / 2.0d);
-                    double a = (sinHalfLat * sinHalfLat) + (sinHalfLon * sinHalfLon * Math.cos(Math.toRadians(pt1.latitude)) * Math.cos(Math.toRadians(pt2.latitude)));
-                    accumulatedDistance += Math.atan2(Math.sqrt(a), Math.sqrt(1.0d - a)) * 2.0d * 6378137.0d;
+                int altValue = (int) contour.f3172b;
+                Bitmap labelBitmap = n2.createAltitudeBadge(this.f3018d, altValue);
+                int offsetX = (-labelBitmap.getWidth()) / 2;
+                int offsetY = (-labelBitmap.getHeight()) / 2;
 
-                    if (accumulatedDistance >= 400.0d || (pointIdx == 0 && pointCount >= 8)) {
-                        LatLong labelPosition = contour.f3171a.get(pointIdx);
-                        int altValue = (int) contour.f3172b;
-                        Context context = this.f3018d;
-                        String altText = Integer.toString(altValue);
-                        TextView textView = new TextView(context);
-                        textView.setGravity(17);
-                        textView.setTextSize(9.0f);
-                        textView.setTypeface(textView.getTypeface(), 1);
-                        textView.setTextColor(Color.rgb(80, 40, 20));
-                        textView.setBackgroundColor(Color.argb(190, 255, 255, 255));
-                        textView.setPadding(4, 1, 4, 1);
-                        textView.setText(altText);
-                        Bitmap labelBitmap = n2.b(context, textView);
-                        Marker altMarker = new Marker(labelPosition, labelBitmap, 0, (-labelBitmap.getHeight()) / 2);
-                        altMarker.setVisible(isVisible);
-                        altMarker.requestRedraw();
-                        AgpsApplication.f3580w.add(altMarker);
+                if (totalLength < 350.0d) {
+                    // Short line or summit ring: place a single label at the midpoint
+                    LatLong labelPos = contour.f3171a.get(pointCount / 2);
+                    Marker altMarker = new Marker(labelPos, labelBitmap, offsetX, offsetY);
+                    altMarker.setVisible(isZoomSufficient);
+                    altMarker.requestRedraw();
+                    AgpsApplication.f3580w.add(altMarker);
+                    if (MainActivity.f3626n1 != null) {
                         MainActivity.f3626n1.a(altMarker);
-                        accumulatedDistance = 0.0d;
                     }
-                    pointIdx = nextIdx;
+                } else {
+                    // Longer line: place labels at regular intervals (~350m), avoiding the very start border
+                    double accumulatedDistance = 0.0d;
+                    double targetInterval = 350.0d;
+                    double firstOffset = 120.0d;
+                    boolean firstLabelPlaced = false;
+
+                    for (int p = 0; p < pointCount - 1; p++) {
+                        LatLong p1 = contour.f3171a.get(p);
+                        LatLong p2 = contour.f3171a.get(p + 1);
+                        accumulatedDistance += calculateDistanceMeters(p1, p2);
+
+                        if (!firstLabelPlaced && accumulatedDistance >= firstOffset) {
+                            Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
+                            altMarker.setVisible(isZoomSufficient);
+                            altMarker.requestRedraw();
+                            AgpsApplication.f3580w.add(altMarker);
+                            if (MainActivity.f3626n1 != null) {
+                                MainActivity.f3626n1.a(altMarker);
+                            }
+                            accumulatedDistance = 0.0d;
+                            firstLabelPlaced = true;
+                        } else if (firstLabelPlaced && accumulatedDistance >= targetInterval) {
+                            Marker altMarker = new Marker(p2, labelBitmap, offsetX, offsetY);
+                            altMarker.setVisible(isZoomSufficient);
+                            altMarker.requestRedraw();
+                            AgpsApplication.f3580w.add(altMarker);
+                            if (MainActivity.f3626n1 != null) {
+                                MainActivity.f3626n1.a(altMarker);
+                            }
+                            accumulatedDistance = 0.0d;
+                        }
+                    }
                 }
             }
         }
     }
+
 
     public final void e(String demName, int elevation) {
         org.mapsforge.core.graphics.Paint contourPaint = n2.a(Color.argb(200, 110, 65, 30), 2, 2);
@@ -652,8 +704,11 @@ public class j implements Callable<String> {
             Polyline polyline = new Polyline(contourPaint, AndroidGraphicFactory.INSTANCE);
             polyline.setPoints(this.f3016b.get(i).f3171a);
             o.demOverlayLayers.add(polyline);
-            MainActivity.f3626n1.a(polyline);
+            if (MainActivity.f3626n1 != null) {
+                MainActivity.f3626n1.a(polyline);
+            }
         }
+
         StringBuilder sbA = android.support.v4.media.b.a("FINE CONTOUR ------------------>   dem Name=");
         boolean z = MainActivity.I0;
         String[] strArrSplit = demName.split("/");

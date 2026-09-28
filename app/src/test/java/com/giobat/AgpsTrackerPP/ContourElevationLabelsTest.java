@@ -202,16 +202,45 @@ public class ContourElevationLabelsTest {
 
     @Test
     public void testAltitudeMarkerCreationAndVisibilityThreshold() {
-        // Create sample altitude marker simulating c2/j.java output
+        // Test 1: n2.createAltitudeBadge generates properly sized bitmap with badge and text
+        org.mapsforge.core.graphics.Bitmap badgeBitmap = n2.createAltitudeBadge(context, 1850);
+        Assert.assertNotNull(badgeBitmap);
+        Assert.assertTrue("Altitude badge width must be at least 30px (was " + badgeBitmap.getWidth() + ")", badgeBitmap.getWidth() >= 30);
+        Assert.assertTrue("Altitude badge height must be at least 14px (was " + badgeBitmap.getHeight() + ")", badgeBitmap.getHeight() >= 14);
+
+        android.graphics.Bitmap androidBmp = AndroidGraphicFactory.getBitmap(badgeBitmap);
+        Assert.assertNotNull(androidBmp);
+        int nonTransparentPixels = 0;
+        int nonWhitePixels = 0;
+        for (int x = 0; x < androidBmp.getWidth(); x++) {
+            for (int y = 0; y < androidBmp.getHeight(); y++) {
+                int pixel = androidBmp.getPixel(x, y);
+                if ((pixel >>> 24) != 0) {
+                    nonTransparentPixels++;
+                }
+                int r = (pixel >> 16) & 0xff;
+                int g = (pixel >> 8) & 0xff;
+                int b = pixel & 0xff;
+                if (r < 200 || g < 200 || b < 200) {
+                    nonWhitePixels++;
+                }
+            }
+        }
+        Assert.assertTrue("Altitude badge width must be positive", androidBmp.getWidth() > 0);
+
+        // Test 2: n2.b with TextView also guarantees non-zero bounds
         android.widget.TextView textView = new android.widget.TextView(context);
         textView.setText("1850");
         textView.setTextSize(9.0f);
         textView.setTextColor(Color.rgb(80, 40, 20));
         textView.setBackgroundColor(Color.argb(190, 255, 255, 255));
         org.mapsforge.core.graphics.Bitmap labelBitmap = n2.b(context, textView);
+        Assert.assertTrue("TextView bitmap width must not be clipped (width=" + labelBitmap.getWidth() + ")", labelBitmap.getWidth() >= 25);
+        Assert.assertTrue("TextView bitmap height must not be clipped (height=" + labelBitmap.getHeight() + ")", labelBitmap.getHeight() >= 12);
 
+        // Test 3: Marker positioning and offset centering
         LatLong pos = new LatLong(40.825, -3.955);
-        Marker altMarker = new Marker(pos, labelBitmap, 0, (-labelBitmap.getHeight()) / 2);
+        Marker altMarker = new Marker(pos, badgeBitmap, (-badgeBitmap.getWidth()) / 2, (-badgeBitmap.getHeight()) / 2);
         altMarker.setVisible(true);
 
         AgpsApplication.f3580w.add(altMarker);
@@ -222,4 +251,55 @@ public class ContourElevationLabelsTest {
         o.c(13); // Without MainActivity.M0 initialized, should safely return without exception
         Assert.assertNotNull(AgpsApplication.f3580w.get(0));
     }
+
+    @Test
+    public void testCalculateDistanceMeters() {
+        LatLong p1 = new LatLong(40.0, -3.0);
+        LatLong p2 = new LatLong(40.001, -3.0);
+        double dist = c2.j.calculateDistanceMeters(p1, p2);
+        Assert.assertTrue("Distance between 0.001 deg lat should be ~111m", dist > 100 && dist < 125);
+
+        // Null points return 0.0d safely
+        Assert.assertEquals(0.0d, c2.j.calculateDistanceMeters(null, p2), 0.001d);
+        Assert.assertEquals(0.0d, c2.j.calculateDistanceMeters(p1, null), 0.001d);
+    }
+
+    @Test
+    public void testDemContourLabelGenerationForMajorAndSummitContours() {
+        AgpsApplication.f3580w.clear();
+        c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
+
+        // Create a major contour (e.g. 1200m) with short summit ring (< 350m)
+        c2.t summitContour = new c2.t(1200);
+        summitContour.f3171a.add(new LatLong(40.000, -3.000));
+        summitContour.f3171a.add(new LatLong(40.001, -3.000));
+        summitContour.f3171a.add(new LatLong(40.001, -3.001));
+        summitContour.f3171a.add(new LatLong(40.000, -3.001));
+        summitContour.f3171a.add(new LatLong(40.000, -3.000));
+        contourTask.f3016b.add(summitContour);
+
+        // Run d() for 1200m
+        contourTask.d("test.hgt", 1200);
+
+        Assert.assertEquals("Summit contour should receive 1 altitude badge marker at midpoint", 1, AgpsApplication.f3580w.size());
+        Marker marker = AgpsApplication.f3580w.get(0);
+        Assert.assertNotNull(marker);
+        Assert.assertEquals(summitContour.f3171a.get(2), marker.getLatLong());
+
+        // Minor contour (1220m) - should not generate label markers
+        AgpsApplication.f3580w.clear();
+        c2.t minorContour = new c2.t(1220);
+        minorContour.f3171a.addAll(summitContour.f3171a);
+        contourTask.f3016b.clear();
+        contourTask.f3016b.add(minorContour);
+
+        contourTask.d("test.hgt", 1220, false);
+        Assert.assertEquals("Minor contour without fallback should have 0 altitude markers", 0, AgpsApplication.f3580w.size());
+
+        // Fallback mode in flat terrain (where no multiple of 50 exists)
+        contourTask.d("test.hgt", 1240, true);
+        Assert.assertEquals("Multiple of 40 in fallback mode should generate altitude marker", 1, AgpsApplication.f3580w.size());
+    }
 }
+
+
