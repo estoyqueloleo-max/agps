@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +56,7 @@ import org.mapsforge.map.model.MapViewPosition;
 import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.XmlRenderTheme;
 import org.mapsforge.map.rendertheme.XmlRenderThemeMenuCallback;
+import org.mapsforge.map.rendertheme.XmlRenderThemeStyleLayer;
 import org.mapsforge.map.rendertheme.XmlRenderThemeStyleMenu;
 import org.xmlpull.v1.XmlPullParser;
 
@@ -140,7 +142,38 @@ public class m2 implements XmlRenderThemeMenuCallback {
     @Override
     public Set<String> getCategories(XmlRenderThemeStyleMenu xmlRenderThemeStyleMenu) {
         this.f3065i = xmlRenderThemeStyleMenu;
-        return null;
+        if (xmlRenderThemeStyleMenu == null) {
+            return null;
+        }
+        String defaultLayerId = xmlRenderThemeStyleMenu.getDefaultValue();
+        XmlRenderThemeStyleLayer selectedLayer = null;
+        if (defaultLayerId != null && !defaultLayerId.isEmpty()) {
+            selectedLayer = xmlRenderThemeStyleMenu.getLayer(defaultLayerId);
+        }
+        if (selectedLayer == null) {
+            selectedLayer = xmlRenderThemeStyleMenu.getLayer("elv-hiking");
+        }
+
+        Set<String> activeCategories = new HashSet<>();
+        if (selectedLayer != null) {
+            activeCategories.addAll(selectedLayer.getCategories());
+            List<XmlRenderThemeStyleLayer> overlays = selectedLayer.getOverlays();
+            if (overlays != null) {
+                for (XmlRenderThemeStyleLayer overlay : overlays) {
+                    if (overlay != null && (overlay.isEnabled() || overlay.isVisible())) {
+                        activeCategories.addAll(overlay.getCategories());
+                    }
+                }
+            }
+        }
+
+        // Guarantee contour lines, elevation labels, and hiking paths are enabled
+        activeCategories.add("contour");
+        activeCategories.add("mountains");
+        activeCategories.add("flat");
+        activeCategories.add("hike");
+        activeCategories.add("smallways");
+        return activeCategories;
     }
 
     public class a extends MapFile {
@@ -226,16 +259,30 @@ public class m2 implements XmlRenderThemeMenuCallback {
         this.f3064h++;
         this.f3057a = context;
         this.f3061e = new com.giobat.AgpsTrackerPP.b(context);
-        MainActivity.M0.setClickable(true);
-        MainActivity.M0.getMapScaleBar().setVisible(false);
-        MainActivity.M0.setBuiltInZoomControls(false);
-        MainActivity.M0.setZoomLevelMin((byte) 2);
-        MainActivity.M0.setZoomLevelMax((byte) 20);
-        int rawTileSize = MainActivity.M0.getModel().displayModel.getTileSize();
-        int tileSize = rawTileSize > 0 ? rawTileSize : 256;
-        d8 = MainActivity.M0.getModel().frameBufferModel.getOverdrawFactor();
-        if (d8 <= 0.0d) {
-            d8 = 1.25d;
+        int tileSize = 256;
+        d8 = 1.25d;
+        if (MainActivity.M0 != null) {
+            MainActivity.M0.setClickable(true);
+            if (MainActivity.M0.getMapScaleBar() != null) {
+                MainActivity.M0.getMapScaleBar().setVisible(false);
+            }
+            MainActivity.M0.setBuiltInZoomControls(false);
+            MainActivity.M0.setZoomLevelMin((byte) 2);
+            MainActivity.M0.setZoomLevelMax((byte) 20);
+            if (MainActivity.M0.getModel() != null) {
+                if (MainActivity.M0.getModel().displayModel != null) {
+                    int rawTileSize = MainActivity.M0.getModel().displayModel.getTileSize();
+                    if (rawTileSize > 0) {
+                        tileSize = rawTileSize;
+                    }
+                }
+                if (MainActivity.M0.getModel().frameBufferModel != null) {
+                    double overdrawFactor = MainActivity.M0.getModel().frameBufferModel.getOverdrawFactor();
+                    if (overdrawFactor > 0.0d) {
+                        d8 = overdrawFactor;
+                    }
+                }
+            }
         }
         Display defaultDisplay = ((WindowManager) context.getSystemService("window")).getDefaultDisplay();
         Point point = new Point();
@@ -279,7 +326,9 @@ public class m2 implements XmlRenderThemeMenuCallback {
                 fileOutputStream.close();
             }
         } catch (IOException e9) {
-            MainActivity.f3625m1.a("getWorldMapFile: " + e9);
+            if (MainActivity.f3625m1 != null) {
+                MainActivity.f3625m1.a("getWorldMapFile: " + e9);
+            }
             v2.e("GPS-M", "<====================================================================================================>");
             fileX = null;
         }
@@ -300,7 +349,9 @@ public class m2 implements XmlRenderThemeMenuCallback {
         Paint strokePaint = n2.a(Color.argb(160, 0, 0, 255), 1, 2);
         strokePaint.setStyle(org.mapsforge.core.graphics.Style.STROKE);
         this.f3062f = new Circle(cVar, 0.0f, fillPaint, strokePaint);
-        MainActivity.M0.getModel().mapViewPosition.addObserver(new l2(this));
+        if (MainActivity.M0 != null && MainActivity.M0.getModel() != null && MainActivity.M0.getModel().mapViewPosition != null) {
+            MainActivity.M0.getModel().mapViewPosition.addObserver(new l2(this));
+        }
     }
 
     public static String c(String str) {

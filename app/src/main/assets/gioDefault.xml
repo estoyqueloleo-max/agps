@@ -216,6 +216,32 @@
         </rule>
     </rule>
 
+    <!-- contour lines (curvas de nivel) -->
+    <rule e="way" k="contour|contour_ext" v="*">
+        <rule e="way" k="*" v="*" zoom-min="11" zoom-max="13">
+            <rule e="way" k="contour_ext" v="elevation_major">
+                <line stroke="#9E8A78" stroke-width="0.3" />
+            </rule>
+        </rule>
+        <rule e="way" k="*" v="*" zoom-min="14" zoom-max="15">
+            <rule e="way" k="contour_ext" v="elevation_minor">
+                <line stroke="#B8A898" stroke-width="0.1" />
+            </rule>
+            <rule e="way" k="contour_ext" v="elevation_medium|elevation_major|~">
+                <line stroke="#8E7860" stroke-width="0.25" />
+                <pathText k="ele" font-style="bold" font-size="8" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.5" repeat-start="80" repeat-gap="200" />
+            </rule>
+        </rule>
+        <rule e="way" k="*" v="*" zoom-min="16">
+            <rule e="way" k="contour_ext" v="elevation_minor">
+                <line stroke="#B8A898" stroke-width="0.12" />
+            </rule>
+            <rule e="way" k="contour_ext" v="elevation_medium|elevation_major|~">
+                <line stroke="#8E7860" stroke-width="0.3" />
+                <pathText k="ele" font-style="bold" font-size="9" fill="#5A4430" stroke="#FFFFFF" stroke-width="1.8" repeat-start="120" repeat-gap="220" />
+            </rule>
+        </rule>
+    </rule>
 
     <!-- tunnels -->
     <rule e="way" k="tunnel" v="yes" zoom-min="13">

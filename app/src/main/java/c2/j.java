@@ -582,7 +582,7 @@ public class j implements Callable<String> {
                 MainActivity.f3625m1.a("showWindowIsolines:" + e8);
             }
         }
-        o.c(15);
+        o.c(13);
         v2.e("GPS-M", "Contour Task ended");
         return "OK";
     }
@@ -592,16 +592,21 @@ public class j implements Callable<String> {
         org.mapsforge.core.graphics.Paint majorContourPaint = n2.a(Color.argb(230, 80, 40, 20), 3, 2);
         for (int i = 0; i < this.f3016b.size(); i++) {
             t contour = this.f3016b.get(i);
-            boolean isMajor = (contour.f3172b % 100 == 0);
+            boolean isMajor = (contour.f3172b % 50 == 0);
             Polyline polyline = new Polyline(isMajor ? majorContourPaint : minorContourPaint, AndroidGraphicFactory.INSTANCE);
             polyline.setPoints(contour.f3171a);
             o.demOverlayLayers.add(polyline);
             MainActivity.f3626n1.a(polyline);
 
-            if (isMajor) {
+            if (isMajor && contour.f3171a != null && !contour.f3171a.isEmpty()) {
                 int pointCount = contour.f3171a.size();
                 int pointIdx = 0;
                 double accumulatedDistance = 0.0d;
+                boolean isVisible = (MainActivity.M0 != null
+                        && MainActivity.M0.getModel() != null
+                        && MainActivity.M0.getModel().mapViewPosition != null
+                        && MainActivity.M0.getModel().mapViewPosition.getZoomLevel() >= 13);
+
                 while (pointIdx < pointCount - 1) {
                     LatLong pt1 = contour.f3171a.get(pointIdx);
                     int nextIdx = pointIdx + 1;
@@ -613,7 +618,8 @@ public class j implements Callable<String> {
                     double sinHalfLon = Math.sin(dLon / 2.0d);
                     double a = (sinHalfLat * sinHalfLat) + (sinHalfLon * sinHalfLon * Math.cos(Math.toRadians(pt1.latitude)) * Math.cos(Math.toRadians(pt2.latitude)));
                     accumulatedDistance += Math.atan2(Math.sqrt(a), Math.sqrt(1.0d - a)) * 2.0d * 6378137.0d;
-                    if (accumulatedDistance > 1000.0d) {
+
+                    if (accumulatedDistance >= 400.0d || (pointIdx == 0 && pointCount >= 8)) {
                         LatLong labelPosition = contour.f3171a.get(pointIdx);
                         int altValue = (int) contour.f3172b;
                         Context context = this.f3018d;
@@ -623,10 +629,12 @@ public class j implements Callable<String> {
                         textView.setTextSize(9.0f);
                         textView.setTypeface(textView.getTypeface(), 1);
                         textView.setTextColor(Color.rgb(80, 40, 20));
+                        textView.setBackgroundColor(Color.argb(190, 255, 255, 255));
+                        textView.setPadding(4, 1, 4, 1);
                         textView.setText(altText);
                         Bitmap labelBitmap = n2.b(context, textView);
                         Marker altMarker = new Marker(labelPosition, labelBitmap, 0, (-labelBitmap.getHeight()) / 2);
-                        altMarker.setVisible(false);
+                        altMarker.setVisible(isVisible);
                         altMarker.requestRedraw();
                         AgpsApplication.f3580w.add(altMarker);
                         MainActivity.f3626n1.a(altMarker);

@@ -18,28 +18,28 @@ public class l2 implements Observer {
 
     @Override
     public void onChange() {
-        byte bZ = MainActivity.M0.getModel().mapViewPosition.getZoomLevel();
-        if (bZ != m2.f3054t) {
-            byte b8 = AgpsApplication.B;
-            if (b8 >= 6 && b8 <= 8) {
+        byte newZoomLevel = MainActivity.M0.getModel().mapViewPosition.getZoomLevel();
+        if (newZoomLevel != m2.f3054t) {
+            byte currentAppZoom = AgpsApplication.B;
+            if (currentAppZoom >= 6 && currentAppZoom <= 8) {
                 m2.f3055u = true;
             }
-            byte b9 = m2.f3054t;
-            if (b9 == 6 || b9 == 8) {
+            byte previousZoom = m2.f3054t;
+            if (previousZoom == 6 || previousZoom == 8) {
                 MainActivity.U0 = true;
             }
-            v2.e("GPS-M", this.f3042h.f3064h + " New zoom level " + ((int) bZ));
-            o.c(15);
-            boolean z = MainActivity.M0.getModel().mapViewPosition.getZoomLevel() == 8;
-            CopyOnWriteArrayList<Marker> copyOnWriteArrayList = AgpsApplication.x;
-            if (copyOnWriteArrayList != null) {
-                for (Marker bVar : copyOnWriteArrayList) {
-                    bVar.setVisible(z);
-                    bVar.requestRedraw();
+            v2.e("GPS-M", this.f3042h.f3064h + " New zoom level " + ((int) newZoomLevel));
+            o.c(13);
+            boolean isOverviewZoom = MainActivity.M0.getModel().mapViewPosition.getZoomLevel() == 8;
+            CopyOnWriteArrayList<Marker> overviewMarkers = AgpsApplication.x;
+            if (overviewMarkers != null) {
+                for (Marker overviewMarker : overviewMarkers) {
+                    overviewMarker.setVisible(isOverviewZoom);
+                    overviewMarker.requestRedraw();
                 }
             }
-            m2.f3054t = bZ;
-            AgpsApplication.B = bZ;
+            m2.f3054t = newZoomLevel;
+            AgpsApplication.B = newZoomLevel;
         }
     }
 }
