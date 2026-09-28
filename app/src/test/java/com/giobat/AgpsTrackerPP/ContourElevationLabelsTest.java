@@ -27,7 +27,24 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import org.mapsforge.core.graphics.Bitmap;
+import org.mapsforge.core.graphics.Curve;
+import org.mapsforge.core.graphics.Display;
+import org.mapsforge.core.graphics.Paint;
+import org.mapsforge.core.graphics.Position;
+import org.mapsforge.core.graphics.SymbolOrientation;
+import org.mapsforge.core.graphics.TextOrientation;
+import org.mapsforge.core.model.Point;
+import org.mapsforge.core.model.Rectangle;
+import org.mapsforge.core.model.Tag;
+import org.mapsforge.core.model.Tile;
+import org.mapsforge.map.datastore.PointOfInterest;
+import org.mapsforge.map.layer.renderer.PolylineContainer;
+import org.mapsforge.map.rendertheme.RenderCallback;
+import org.mapsforge.map.rendertheme.RenderContext;
 
 /**
  * Automated tests verifying contour line elevation labels (isolines altitudes)
@@ -45,6 +62,98 @@ public class ContourElevationLabelsTest {
         context = ApplicationProvider.getApplicationContext();
         AndroidGraphicFactory.createInstance(context);
         AgpsApplication.f3580w.clear();
+    }
+
+    @Test
+    public void testGioDefaultMatchesContourLinesAndElevationLabels() throws Exception {
+        XmlRenderTheme theme = new AssetsRenderTheme(context.getAssets(), "", "gioDefault.xml");
+        DisplayModel displayModel = new DisplayModel();
+        RenderTheme renderTheme = RenderThemeHandler.getRenderTheme(AndroidGraphicFactory.INSTANCE, displayModel, theme);
+
+        List<String> renderedTexts = new ArrayList<>();
+        List<String> renderedWays = new ArrayList<>();
+
+        RenderCallback callback = new RenderCallback() {
+            @Override
+            public void renderArea(RenderContext rc, Paint p1, Paint p2, int level, PolylineContainer pc) {}
+            @Override
+            public void renderAreaCaption(RenderContext rc, Display d, int i, String text, float f1, float f2, Paint p1, Paint p2, Position pos, int i2, PolylineContainer pc) {}
+            @Override
+            public void renderAreaSymbol(RenderContext rc, Display d, int i, Bitmap b, PolylineContainer pc) {}
+            @Override
+            public void renderPointOfInterestCaption(RenderContext rc, Display d, int i, String text, float f1, float f2, Paint p1, Paint p2, Position pos, int i2, PointOfInterest poi) {}
+            @Override
+            public void renderPointOfInterestCircle(RenderContext rc, float f, Paint p1, Paint p2, int i, PointOfInterest poi) {}
+            @Override
+            public void renderPointOfInterestSymbol(RenderContext rc, Display d, int i, Rectangle r, Bitmap b, PointOfInterest poi) {}
+            @Override
+            public void renderWay(RenderContext rc, Paint p, float f, Curve c, int level, PolylineContainer pc) {
+                renderedWays.add("way");
+            }
+            @Override
+            public void renderWaySymbol(RenderContext rc, Display d, int i, Bitmap b, float f, Rectangle r, boolean b2, float f2, float f3, SymbolOrientation so, PolylineContainer pc) {}
+            @Override
+            public void renderWayText(RenderContext rc, Display d, int i, String text, float f, Paint p1, Paint p2, boolean b, float f2, float f3, TextOrientation to, PolylineContainer pc) {
+                renderedTexts.add(text);
+            }
+        };
+
+        // Test 1: Way with contour=elevation and ele=650 (standard OSM / DEM contour)
+        List<Tag> tagsOsm = new ArrayList<>();
+        tagsOsm.add(new Tag("contour", "elevation"));
+        tagsOsm.add(new Tag("ele", "650"));
+
+        Tile tile = new Tile(100, 100, (byte) 15, 256);
+        Point[] points = new Point[] { new Point(0, 0), new Point(100, 100) };
+        PolylineContainer polyOsm = new PolylineContainer(points, tile, tile, tagsOsm);
+
+        org.mapsforge.map.rendertheme.rule.RenderThemeFuture future = new org.mapsforge.map.rendertheme.rule.RenderThemeFuture(AndroidGraphicFactory.INSTANCE, theme, displayModel);
+        future.run();
+        org.mapsforge.map.datastore.MapDataStore mockStore = org.mockito.Mockito.mock(org.mapsforge.map.datastore.MapDataStore.class);
+        org.mapsforge.map.layer.renderer.RendererJob job = new org.mapsforge.map.layer.renderer.RendererJob(tile, mockStore, future, displayModel, 1.0f, false, false);
+        RenderContext renderContext = new RenderContext(job, AndroidGraphicFactory.INSTANCE);
+
+        renderTheme.matchLinearWay(callback, renderContext, polyOsm);
+        Assert.assertEquals(1, renderedWays.size());
+        Assert.assertEquals(1, renderedTexts.size());
+        Assert.assertEquals("650", renderedTexts.get(0));
+
+        // Test 2: Way with contour_ext=elevation_major and ele=1200 (OpenAndroMaps) at zoom 15
+        renderedWays.clear();
+        renderedTexts.clear();
+        List<Tag> tagsOam = new ArrayList<>();
+        tagsOam.add(new Tag("contour_ext", "elevation_major"));
+        tagsOam.add(new Tag("ele", "1200"));
+        PolylineContainer polyOam = new PolylineContainer(points, tile, tile, tagsOam);
+
+        renderTheme.matchLinearWay(callback, renderContext, polyOam);
+        Assert.assertEquals(1, renderedWays.size());
+        Assert.assertEquals(1, renderedTexts.size());
+        Assert.assertEquals("1200", renderedTexts.get(0));
+
+        // Test 3: Way with contour_ext=elevation_minor (intermediate lines) - line drawn, but NO numbers to avoid clutter
+        renderedWays.clear();
+        renderedTexts.clear();
+        List<Tag> tagsMinor = new ArrayList<>();
+        tagsMinor.add(new Tag("contour_ext", "elevation_minor"));
+        tagsMinor.add(new Tag("ele", "1210"));
+        PolylineContainer polyMinor = new PolylineContainer(points, tile, tile, tagsMinor);
+
+        renderTheme.matchLinearWay(callback, renderContext, polyMinor);
+        Assert.assertEquals("Minor contour line must be drawn", 1, renderedWays.size());
+        Assert.assertTrue("Minor contour lines should not have labels at zoom 15", renderedTexts.isEmpty());
+
+        // Test 4: At low zoom (zoom 12), major line is drawn, but elevation labels are hidden
+        Tile lowZoomTile = new Tile(10, 10, (byte) 12, 256);
+        org.mapsforge.map.layer.renderer.RendererJob lowZoomJob = new org.mapsforge.map.layer.renderer.RendererJob(lowZoomTile, mockStore, future, displayModel, 1.0f, false, false);
+        RenderContext lowZoomRenderContext = new RenderContext(lowZoomJob, AndroidGraphicFactory.INSTANCE);
+        renderedWays.clear();
+        renderedTexts.clear();
+        PolylineContainer polyLowZoom = new PolylineContainer(points, lowZoomTile, lowZoomTile, tagsOam);
+
+        renderTheme.matchLinearWay(callback, lowZoomRenderContext, polyLowZoom);
+        Assert.assertEquals("Major contour line drawn at zoom 12", 1, renderedWays.size());
+        Assert.assertTrue("Labels must be hidden at zoom < 14", renderedTexts.isEmpty());
     }
 
     @Test
