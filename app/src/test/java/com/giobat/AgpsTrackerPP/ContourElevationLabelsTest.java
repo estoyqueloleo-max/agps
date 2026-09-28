@@ -143,8 +143,21 @@ public class ContourElevationLabelsTest {
         Assert.assertEquals("Minor contour line must be drawn", 1, renderedWays.size());
         Assert.assertTrue("Minor contour lines should not have labels at zoom 15", renderedTexts.isEmpty());
 
-        // Test 4: At low zoom (zoom 12), major line is drawn, but elevation labels are hidden
-        Tile lowZoomTile = new Tile(10, 10, (byte) 12, 256);
+        // Test 4: At zoom 13, major contour lines receive elevation labels
+        Tile zoom13Tile = new Tile(10, 10, (byte) 13, 256);
+        org.mapsforge.map.layer.renderer.RendererJob zoom13Job = new org.mapsforge.map.layer.renderer.RendererJob(zoom13Tile, mockStore, future, displayModel, 1.0f, false, false);
+        RenderContext zoom13RenderContext = new RenderContext(zoom13Job, AndroidGraphicFactory.INSTANCE);
+        renderedWays.clear();
+        renderedTexts.clear();
+        PolylineContainer polyZoom13 = new PolylineContainer(points, zoom13Tile, zoom13Tile, tagsOam);
+
+        renderTheme.matchLinearWay(callback, zoom13RenderContext, polyZoom13);
+        Assert.assertEquals("Major contour line drawn at zoom 13", 1, renderedWays.size());
+        Assert.assertEquals("Elevation labels must be visible at zoom 13", 1, renderedTexts.size());
+        Assert.assertEquals("1200", renderedTexts.get(0));
+
+        // Test 5: At overview zoom (zoom 11), major line is drawn, but elevation labels are hidden to avoid clutter
+        Tile lowZoomTile = new Tile(10, 10, (byte) 11, 256);
         org.mapsforge.map.layer.renderer.RendererJob lowZoomJob = new org.mapsforge.map.layer.renderer.RendererJob(lowZoomTile, mockStore, future, displayModel, 1.0f, false, false);
         RenderContext lowZoomRenderContext = new RenderContext(lowZoomJob, AndroidGraphicFactory.INSTANCE);
         renderedWays.clear();
@@ -152,8 +165,8 @@ public class ContourElevationLabelsTest {
         PolylineContainer polyLowZoom = new PolylineContainer(points, lowZoomTile, lowZoomTile, tagsOam);
 
         renderTheme.matchLinearWay(callback, lowZoomRenderContext, polyLowZoom);
-        Assert.assertEquals("Major contour line drawn at zoom 12", 1, renderedWays.size());
-        Assert.assertTrue("Labels must be hidden at zoom < 14", renderedTexts.isEmpty());
+        Assert.assertEquals("Major contour line drawn at zoom 11", 1, renderedWays.size());
+        Assert.assertTrue("Labels must be hidden at zoom <= 11", renderedTexts.isEmpty());
     }
 
     @Test
