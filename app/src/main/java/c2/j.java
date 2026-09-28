@@ -633,6 +633,7 @@ public class j implements Callable<String> {
                 int offsetY = (-labelBitmap.getHeight()) / 2;
 
                 double accumulatedDistance = 0.0d;
+                boolean placedAtLeastOneLabel = false;
                 for (int p = 0; p < pointCount - 1; p++) {
                     LatLong p1 = contour.f3171a.get(p);
                     LatLong p2 = contour.f3171a.get(p + 1);
@@ -647,6 +648,19 @@ public class j implements Callable<String> {
                             MainActivity.f3626n1.a(altMarker);
                         }
                         accumulatedDistance = 0.0d;
+                        placedAtLeastOneLabel = true;
+                    }
+                }
+                // Guarantee at least one label per major contour, placed at its midpoint.
+                // This covers contours shorter than 1000m that would otherwise be unlabelled.
+                if (!placedAtLeastOneLabel) {
+                    LatLong midPoint = contour.f3171a.get(pointCount / 2);
+                    Marker midMarker = new Marker(midPoint, labelBitmap, offsetX, offsetY);
+                    midMarker.setVisible(isZoomSufficient);
+                    midMarker.requestRedraw();
+                    AgpsApplication.f3580w.add(midMarker);
+                    if (MainActivity.f3626n1 != null) {
+                        MainActivity.f3626n1.a(midMarker);
                     }
                 }
             }

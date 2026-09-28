@@ -298,7 +298,29 @@ public class ContourElevationLabelsTest {
         o.c(15);
         Assert.assertEquals(0, AgpsApplication.f3580w.size());
     }
+
+    @Test
+    public void testShortMajorContourAlwaysReceivesAtLeastOneLabel() {
+        // Regression test: a major contour shorter than 1000m must always get one label at its midpoint.
+        // Before the fix, contours < 1000m were silently skipped, leaving them completely unlabelled.
+        AgpsApplication.f3580w.clear();
+        c2.j contourTask = new c2.j(new LatLong(40.0, -3.0), context, null);
+
+        // Create a major contour (1100m) with only 3 points (~150m total — well under 1000m threshold)
+        c2.t shortMajorContour = new c2.t(1100);
+        shortMajorContour.f3171a.add(new LatLong(40.000, -3.000));
+        shortMajorContour.f3171a.add(new LatLong(40.001, -3.000)); // midpoint index=1
+        shortMajorContour.f3171a.add(new LatLong(40.001, -3.001)); // ~140m total
+        contourTask.f3016b.add(shortMajorContour);
+
+        contourTask.d("test_short.hgt", 1100);
+
+        Assert.assertEquals(
+                "Short major contour (< 1000m) must still receive exactly 1 midpoint label",
+                1, AgpsApplication.f3580w.size());
+
+        // Midpoint of 3-point contour is index 1 (size/2 = 1)
+        LatLong expectedMidPoint = shortMajorContour.f3171a.get(1);
+        Assert.assertEquals(expectedMidPoint, AgpsApplication.f3580w.get(0).getLatLong());
+    }
 }
-
-
-
