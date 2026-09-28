@@ -1339,27 +1339,27 @@ Please have a look at read_me_elevate.txt for reuse and licenses of resources us
 		<!-- captions -->
 		<rule e="way" k="*" v="*" zoom-max="13" zoom-min="13">
 			<rule e="way" k="contour_ext" v="elevation_major">
-				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="50" repeat-gap="150" />
+				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="10" repeat-gap="50" />
 			</rule>
 		</rule>
 		<rule cat="mountains" e="way" k="*" v="*" zoom-min="14" zoom-max="14">
 			<rule e="way" k="contour_ext" v="elevation_major">
-				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="50" repeat-gap="150" />
+				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="10" repeat-gap="50" />
 			</rule>
 		</rule>
 		<rule cat="flat" e="way" k="*" v="*" zoom-min="14" zoom-max="14">
 			<rule e="way" k="contour_ext" v="elevation_medium|elevation_major">
-				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="50" repeat-gap="150" />
+				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="10" repeat-gap="50" />
 			</rule>
 		</rule>
 		<rule e="way" k="*" v="*" zoom-min="15" zoom-max="15">
 			<rule e="way" k="contour_ext" v="elevation_medium|elevation_major">
-				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="100" repeat-gap="150" />
+				<pathText k="ele" font-style="bold" font-size="8" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="1" repeat-start="12" repeat-gap="50" />
 			</rule>
 		</rule>
 		<rule e="way" k="*" v="*" zoom-min="16">
 			<rule e="way" k="contour_ext" v="elevation_medium|elevation_major">
-				<pathText k="ele" font-style="bold" font-size="9" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="2" repeat-start="200" repeat-gap="200" />
+				<pathText k="ele" font-style="bold" font-size="9" fill="#6E5A46" stroke="#E5FFFFFF" stroke-width="2" repeat-start="15" repeat-gap="60" />
 			</rule>
 		</rule>
 	</rule>

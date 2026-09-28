@@ -231,6 +231,9 @@ public class DemRenderVisualTest {
         MapView mapView = new MapView(context);
         MainActivity.M0 = mapView;
         MainActivity.f3626n1 = new u2(mapView);
+        if (mapView.getModel() != null && mapView.getModel().mapViewPosition != null) {
+            mapView.getModel().mapViewPosition.setZoomLevel((byte) 14);
+        }
         DisplayModel displayModel = new DisplayModel();
 
         // 1. Target mountain: Pico Peñalara (Sierra de Guadarrama)
@@ -284,6 +287,7 @@ public class DemRenderVisualTest {
         c2.j contourTask = new c2.j(summit, context, dem);
         String taskResult = contourTask.call();
         Assert.assertEquals("OK", taskResult);
+        Assert.assertTrue("Altitude markers must be generated", AgpsApplication.altitudeMarkers.size() > 0);
         Assert.assertFalse("Contour polylines should be generated", o.demOverlayLayers.isEmpty());
 
         // 5. Add navigation path (GPX track) from start to summit
@@ -321,7 +325,7 @@ public class DemRenderVisualTest {
         double centerPixelY = org.mapsforge.core.util.MercatorProjection.latitudeToPixelY(centerLat, mapSize);
         Point topLeftPoint = new Point(centerPixelX - (canvasWidth / 2.0), centerPixelY - (canvasHeight / 2.0));
 
-        // 7. Render all map layers (DEM domain box, contour lines, navigation path)
+        // 7. Render all map layers (DEM domain box, contour lines, altitude markers, navigation path)
         Layers layers = mapView.getLayerManager().getLayers();
         for (int i = 0; i < layers.size(); i++) {
             Layer layer = layers.get(i);
@@ -365,7 +369,7 @@ public class DemRenderVisualTest {
         Assert.assertTrue(artifact.exists());
 
         // Also copy to IDE artifacts directory for user presentation
-        File ideArtifactDir = new File("/home/jose/.gemini/antigravity-ide/brain/51955371-6036-4455-972a-e5c15775cdf3");
+        File ideArtifactDir = new File("/home/jose/.gemini/antigravity-ide/brain/74b614f9-407a-44fc-9c32-71bbe7e564f7");
         if (ideArtifactDir.exists()) {
             File ideArtifact = new File(ideArtifactDir, "mountain_navigation_dem_contours.png");
             try (FileOutputStream fos = new FileOutputStream(ideArtifact)) {
@@ -373,9 +377,10 @@ public class DemRenderVisualTest {
             }
         }
 
-        // 9. Assert pixels from contour lines and navigation track were drawn
+        // 9. Assert pixels from contour lines, altitude text labels, and navigation track were drawn
         int routePixels = 0;
         int contourPixels = 0;
+        int altitudeTextPixels = 0;
         for (int x = 0; x < canvasWidth; x++) {
             for (int y = 0; y < canvasHeight; y++) {
                 int pixel = androidBitmap.getPixel(x, y);
@@ -387,10 +392,15 @@ public class DemRenderVisualTest {
                 if (Color.red(pixel) > 60 && Color.red(pixel) < 160 && Color.green(pixel) > 30 && Color.green(pixel) < 100 && Color.blue(pixel) < 50) {
                     contourPixels++;
                 }
+                // Check dark brown altitude text pixels: rgb(85, 55, 30)
+                if (Math.abs(Color.red(pixel) - 85) < 15 && Math.abs(Color.green(pixel) - 55) < 15 && Math.abs(Color.blue(pixel) - 30) < 15) {
+                    altitudeTextPixels++;
+                }
             }
         }
         Assert.assertTrue("Route pixels must be drawn (found: " + routePixels + ")", routePixels > 100);
         Assert.assertTrue("Contour lines must be drawn across the mountain terrain (found: " + contourPixels + ")", contourPixels > 500);
+        Assert.assertTrue("Altitude text labels must be drawn on contours (found: " + altitudeTextPixels + ")", altitudeTextPixels > 100);
 
         // Clean up temporary synthetic Hgt
         hgtFile.delete();

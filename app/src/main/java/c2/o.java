@@ -157,6 +157,13 @@ public class o {
                 marker.requestRedraw();
             }
         }
+        CopyOnWriteArrayList<Marker> altMarkers = AgpsApplication.altitudeMarkers;
+        if (altMarkers != null) {
+            for (Marker marker : altMarkers) {
+                marker.setVisible(isVisible);
+                marker.requestRedraw();
+            }
+        }
     }
 
     public static void d(BoundingBox box, int level) {
@@ -171,6 +178,7 @@ public class o {
 
     public static void e(Context context) {
         AgpsApplication.f3580w.clear();
+        AgpsApplication.altitudeMarkers.clear();
         demOverlayLayers.clear();
         for (n demFile : f3084p) {
             BoundingBox box = demFile.f3072b;
@@ -237,6 +245,7 @@ public class o {
         }
         ((ArrayList) f3084p).clear();
         AgpsApplication.f3580w.clear();
+        AgpsApplication.altitudeMarkers.clear();
         demOverlayLayers.clear();
         File fileX = MainActivity.X(context, "Dems", 2);
         File[] fileArrListFiles = (fileX == null || !fileX.isDirectory()) ? null : fileX.listFiles();
