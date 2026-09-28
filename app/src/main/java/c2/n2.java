@@ -89,27 +89,27 @@ public class n2 {
             density = 1.0f;
         }
 
-        float textSizePx = 10.0f * density;
+        float textSizePx = 9.0f * density;
         android.graphics.Paint textPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(textSizePx);
         textPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
-        // Dark brown, fully opaque so numbers stand out crisply
-        textPaint.setColor(android.graphics.Color.rgb(80, 40, 20));
+        // Warm dark brown matching standard topographic maps
+        textPaint.setColor(android.graphics.Color.rgb(85, 55, 30));
 
-        // White stroke halo for legibility against contour lines and terrain
+        // Subtle white stroke halo for legibility against map lines and terrain
         android.graphics.Paint strokePaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         strokePaint.setTextSize(textSizePx);
         strokePaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
         strokePaint.setColor(android.graphics.Color.argb(220, 255, 255, 255));
         strokePaint.setStyle(android.graphics.Paint.Style.STROKE);
-        strokePaint.setStrokeWidth(2.5f * density);
+        strokePaint.setStrokeWidth(2.0f * density);
 
         float textWidth = Math.max(textPaint.measureText(altText), altText.length() * (textSizePx * 0.65f));
         android.graphics.Paint.FontMetrics fm = textPaint.getFontMetrics();
         float textHeight = Math.abs(fm.bottom - fm.top);
 
-        int padH = (int) Math.ceil(3.0f * density);
-        int padV = (int) Math.ceil(2.0f * density);
+        int padH = (int) Math.ceil(2.0f * density);
+        int padV = (int) Math.ceil(1.5f * density);
         int w = (int) Math.ceil(textWidth) + (padH * 2);
         int h = (int) Math.ceil(textHeight) + (padV * 2);
         if (w < 1) w = 1;

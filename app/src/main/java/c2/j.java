@@ -644,7 +644,7 @@ public class j implements Callable<String> {
         // Multiple small segments belonging to the same contour line or hill ring will not
         // receive clustered labels because we enforce a minimum spatial distance (700m) between placed labels.
         if (isMajor && !this.f3016b.isEmpty()) {
-            final double minLabelDistanceMeters = 700.0d;
+            final double minLabelDistanceMeters = 500.0d;
             List<LatLong> placedLabelPositions = new ArrayList<>();
             Bitmap labelBitmap = n2.createAltitudeBadge(this.f3018d, elevation);
             int offsetX = (-labelBitmap.getWidth()) / 2;
