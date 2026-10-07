@@ -937,5 +937,117 @@ public class x3 {
 
         return new RemainingDistanceResult(remainingDistance, minDistanceToTrack, closestIndex, reachedDestination);
     }
+
+    /**
+     * Recalculates segment bounds, bounding boxes, distances, and profile arrays
+     * after points have been added, removed, or modified.
+     */
+    public void recalculateAfterEdit() {
+        for (q3 segment : this.f3236a) {
+            segment.a();
+            segment.g();
+        }
+        l();
+        c();
+    }
+
+    /**
+     * Trims all points before the specified global track index (keeps points from index to end).
+     *
+     * @param pointIndex The index in this.f3238c to trim before.
+     * @return true if trimming was successful.
+     */
+    public boolean trimStart(int pointIndex) {
+        if (pointIndex <= 0 || pointIndex >= i() - 1) {
+            return false;
+        }
+        int remainingToTrim = pointIndex;
+        Iterator<q3> iterator = this.f3236a.iterator();
+        while (iterator.hasNext()) {
+            q3 segment = iterator.next();
+            int segmentSize = segment.f3123b.size();
+            if (remainingToTrim >= segmentSize) {
+                this.f3236a.remove(segment);
+                remainingToTrim -= segmentSize;
+            } else {
+                segment.removePointRange(0, remainingToTrim - 1);
+                break;
+            }
+        }
+        recalculateAfterEdit();
+        return true;
+    }
+
+    /**
+     * Trims all points after the specified global track index (keeps points from 0 up to index).
+     *
+     * @param pointIndex The index in this.f3238c to trim after.
+     * @return true if trimming was successful.
+     */
+    public boolean trimEnd(int pointIndex) {
+        if (pointIndex < 1 || pointIndex >= i() - 1) {
+            return false;
+        }
+        int currentIndex = 0;
+        Iterator<q3> iterator = this.f3236a.iterator();
+        boolean trimmingSegments = false;
+        while (iterator.hasNext()) {
+            q3 segment = iterator.next();
+            int segmentSize = segment.f3123b.size();
+            if (trimmingSegments) {
+                this.f3236a.remove(segment);
+            } else if (currentIndex + segmentSize > pointIndex) {
+                int indexInSegment = pointIndex - currentIndex;
+                segment.removePointRange(indexInSegment + 1, segmentSize - 1);
+                trimmingSegments = true;
+            } else {
+                currentIndex += segmentSize;
+            }
+        }
+        recalculateAfterEdit();
+        return true;
+    }
+
+    /**
+     * Removes a single point by its global index in the track.
+     *
+     * @param globalIndex The index in this.f3238c of the point to remove.
+     * @return true if the point was removed.
+     */
+    public boolean removePointAt(int globalIndex) {
+        if (globalIndex < 0 || globalIndex >= i() || i() <= 2) {
+            return false;
+        }
+        int currentIndex = 0;
+        for (q3 segment : this.f3236a) {
+            int segmentSize = segment.f3123b.size();
+            if (globalIndex < currentIndex + segmentSize) {
+                int indexInSegment = globalIndex - currentIndex;
+                segment.removePointRange(indexInSegment, indexInSegment);
+                if (segment.f3123b.isEmpty()) {
+                    this.f3236a.remove(segment);
+                }
+                recalculateAfterEdit();
+                return true;
+            }
+            currentIndex += segmentSize;
+        }
+        return false;
+    }
+
+    /**
+     * Inverts the direction of the entire track (reverses points within segments and reverses segment order).
+     */
+    public void reverseTrack() {
+        if (i() <= 1) {
+            return;
+        }
+        for (q3 segment : this.f3236a) {
+            segment.reverseSegment();
+        }
+        java.util.Collections.reverse(this.f3236a);
+        recalculateAfterEdit();
+    }
 }
+
 

@@ -339,6 +339,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /* JADX INFO: renamed from: h1, reason: collision with root package name */
     public static boolean f3620h1 = false;
 
+    public static final int TRACK_EDIT_MODE_NONE = 0;
+    public static final int TRACK_EDIT_MODE_TRIM_START = 1;
+    public static final int TRACK_EDIT_MODE_TRIM_END = 2;
+    public static final int TRACK_EDIT_MODE_DELETE_POINT = 3;
+    public static int trackEditMode = TRACK_EDIT_MODE_NONE;
+
     /* JADX INFO: renamed from: i1, reason: collision with root package name */
     public static boolean f3621i1 = false;
 
@@ -1140,6 +1146,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mainActivity.w(location2, true, 2);
                     return;
                 }
+                if (intent.getAction().equals("TRACK_EDIT_POINT_SELECTED")) {
+                    int pointIndex = intent.getIntExtra("POINT_INDEX", -1);
+                    double doubleLat = intent.getDoubleExtra("LATIT", 0.0d);
+                    double doubleLon = intent.getDoubleExtra("LONGIT", 0.0d);
+                    double doubleAlt = intent.getDoubleExtra("ALTIT", 0.0d);
+                    Location editLocation = new Location("Dummy");
+                    editLocation.setLatitude(doubleLat);
+                    editLocation.setLongitude(doubleLon);
+                    editLocation.setAltitude(doubleAlt);
+                    MainActivity.this.handleTrackEditPoint(pointIndex, editLocation);
+                    return;
+                }
                 if (intent.getAction().equals("POI_LONG_PRESSED_POS")) {
                     try {
                         a4 a4Var = MainActivity.f3618f1;
@@ -1500,7 +1518,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 f3630r1 = true;
             }
         } catch (Exception e8) {
-            d0.c("SaveGpx Error: ", e8, f3625m1);
+            if (f3625m1 != null) {
+                d0.c("SaveGpx Error: ", e8, f3625m1);
+            } else {
+                v2.e("GPS-M", "SaveGpx Error: " + e8);
+            }
         }
     }
 
@@ -2521,6 +2543,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void g0() {
+        if (X0 == null) {
+            X0 = new Semaphore(1);
+        }
         try {
             X0.acquire();
             v2.e("GPS-I", "Load all photos in table");
@@ -2536,7 +2561,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception e8) {
             androidx.appcompat.widget.d.c("loadPhotoPointsTable:", e8, "GPS-M");
         }
-        X0.release();
+        if (X0 != null) {
+            X0.release();
+        }
     }
 
     public void h0() {
@@ -2671,6 +2698,116 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         builder.setNeutralButton(getResources().getString(R.string.delete), new p(this, a4Var));
         builder.setNegativeButton(getResources().getString(R.string.cancel), new q(this));
         builder.create().show();
+    }
+
+    public AlertDialog handleTrackEditPoint(final int pointIndex, final Location pointLocation) {
+        final x3 loadedTrack = AgpsApplication.f3574q;
+        if (loadedTrack == null || loadedTrack.i() <= 1) {
+            w0(getResources().getString(R.string.no_loaded_track));
+            trackEditMode = TRACK_EDIT_MODE_NONE;
+            return null;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.edit_track_confirm_title);
+
+        String message;
+        if (trackEditMode == TRACK_EDIT_MODE_TRIM_START) {
+            message = getString(R.string.edit_track_confirm_trim_start) + "\n\n"
+                    + getString(R.string.latitude_short) + "=" + String.format(Locale.US, "%.5f", pointLocation.getLatitude()) + "°, "
+                    + getString(R.string.longitude_short) + "=" + String.format(Locale.US, "%.5f", pointLocation.getLongitude()) + "°\n"
+                    + "(" + pointIndex + " / " + loadedTrack.i() + ")";
+        } else if (trackEditMode == TRACK_EDIT_MODE_TRIM_END) {
+            message = getString(R.string.edit_track_confirm_trim_end) + "\n\n"
+                    + getString(R.string.latitude_short) + "=" + String.format(Locale.US, "%.5f", pointLocation.getLatitude()) + "°, "
+                    + getString(R.string.longitude_short) + "=" + String.format(Locale.US, "%.5f", pointLocation.getLongitude()) + "°\n"
+                    + "(" + pointIndex + " / " + loadedTrack.i() + ")";
+        } else if (trackEditMode == TRACK_EDIT_MODE_DELETE_POINT) {
+            message = getString(R.string.edit_track_confirm_delete_point) + "\n\n"
+                    + getString(R.string.latitude_short) + "=" + String.format(Locale.US, "%.5f", pointLocation.getLatitude()) + "°, "
+                    + getString(R.string.longitude_short) + "=" + String.format(Locale.US, "%.5f", pointLocation.getLongitude()) + "°";
+        } else {
+            trackEditMode = TRACK_EDIT_MODE_NONE;
+            return null;
+        }
+
+        builder.setMessage(message);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which) {
+                boolean modified = false;
+                if (trackEditMode == TRACK_EDIT_MODE_TRIM_START) {
+                    modified = loadedTrack.trimStart(pointIndex);
+                } else if (trackEditMode == TRACK_EDIT_MODE_TRIM_END) {
+                    modified = loadedTrack.trimEnd(pointIndex);
+                } else if (trackEditMode == TRACK_EDIT_MODE_DELETE_POINT) {
+                    modified = loadedTrack.removePointAt(pointIndex);
+                }
+
+                trackEditMode = TRACK_EDIT_MODE_NONE;
+                if (modified) {
+                    loadedTrack.f3242g = getString(R.string.new_modif_track);
+                    U0 = true;
+                    AgpsApplication.f3570l = true;
+                    new Thread(loadedTrack.new b(null)).start();
+                    MainActivity.this.x0(loadedTrack);
+                    MainActivity.this.invalidateOptionsMenu();
+                    MainActivity.this.w0(getString(R.string.edit_track_success));
+                }
+                dialogInterface.dismiss();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which) {
+                trackEditMode = TRACK_EDIT_MODE_NONE;
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                trackEditMode = TRACK_EDIT_MODE_NONE;
+            }
+        });
+        dialog.show();
+        return dialog;
+    }
+
+    public AlertDialog reverseLoadedTrack() {
+        final x3 loadedTrack = AgpsApplication.f3574q;
+        if (loadedTrack == null || loadedTrack.i() <= 1) {
+            w0(getResources().getString(R.string.no_loaded_track));
+            return null;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.edit_track_confirm_title);
+        builder.setMessage(R.string.edit_track_confirm_reverse);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which) {
+                loadedTrack.reverseTrack();
+                loadedTrack.f3242g = getString(R.string.new_modif_track);
+                U0 = true;
+                AgpsApplication.f3570l = true;
+                new Thread(loadedTrack.new b(null)).start();
+                MainActivity.this.x0(loadedTrack);
+                MainActivity.this.invalidateOptionsMenu();
+                MainActivity.this.w0(getString(R.string.edit_track_success));
+                dialogInterface.dismiss();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which) {
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        return dialog;
     }
 
     @Override // android.hardware.SensorEventListener
@@ -3456,6 +3593,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             builder3.show();
             return true;
         }
+        if (menuItem.getItemId() == R.id.track_edit_trim_start) {
+            x3 loadedTrack = AgpsApplication.f3574q;
+            if (loadedTrack == null || loadedTrack.i() <= 1) {
+                w0(getResources().getString(R.string.no_loaded_track));
+                return true;
+            }
+            trackEditMode = TRACK_EDIT_MODE_TRIM_START;
+            f3619g1 = true;
+            f3620h1 = true;
+            Snackbar.make(this.f3664y, getResources().getString(R.string.edit_track_touch_instruction), Snackbar.LENGTH_LONG).show();
+            return true;
+        }
+        if (menuItem.getItemId() == R.id.track_edit_trim_end) {
+            x3 loadedTrack = AgpsApplication.f3574q;
+            if (loadedTrack == null || loadedTrack.i() <= 1) {
+                w0(getResources().getString(R.string.no_loaded_track));
+                return true;
+            }
+            trackEditMode = TRACK_EDIT_MODE_TRIM_END;
+            f3619g1 = true;
+            f3620h1 = true;
+            Snackbar.make(this.f3664y, getResources().getString(R.string.edit_track_touch_instruction), Snackbar.LENGTH_LONG).show();
+            return true;
+        }
+        if (menuItem.getItemId() == R.id.track_edit_delete_point) {
+            x3 loadedTrack = AgpsApplication.f3574q;
+            if (loadedTrack == null || loadedTrack.i() <= 1) {
+                w0(getResources().getString(R.string.no_loaded_track));
+                return true;
+            }
+            trackEditMode = TRACK_EDIT_MODE_DELETE_POINT;
+            f3619g1 = true;
+            f3620h1 = true;
+            Snackbar.make(this.f3664y, getResources().getString(R.string.edit_track_touch_instruction), Snackbar.LENGTH_LONG).show();
+            return true;
+        }
+        if (menuItem.getItemId() == R.id.track_edit_reverse) {
+            reverseLoadedTrack();
+            return true;
+        }
         if (menuItem.getItemId() == R.id.gpx_save_modified) {
             x3 x3Var4 = AgpsApplication.f3574q;
             if (x3Var4 == null || x3Var4.i() < 1) {
@@ -3471,7 +3648,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             View viewInflate = getLayoutInflater().inflate(R.layout.gpx_file_save_dialog, (ViewGroup) null);
             builder4.setTitle(getResources().getString(R.string.save_modified_track));
             builder4.setView(viewInflate);
-            builder4.setPositiveButton(getResources().getString(R.string.ok), new i1(this, (EditText) viewInflate.findViewById(R.id.gpx_filename), (EditText) viewInflate.findViewById(R.id.gpx_description)));
+            EditText filenameInput = (EditText) viewInflate.findViewById(R.id.gpx_filename);
+            EditText descInput = (EditText) viewInflate.findViewById(R.id.gpx_description);
+            if (x3Var4.f3242g != null && !x3Var4.f3242g.isEmpty()) {
+                filenameInput.setText(x3Var4.f3242g);
+            }
+            if (x3Var4.f3244i != null && !x3Var4.f3244i.isEmpty()) {
+                descInput.setText(x3Var4.f3244i);
+            }
+            builder4.setPositiveButton(getResources().getString(R.string.ok), new i1(this, filenameInput, descInput));
             builder4.setNegativeButton(getResources().getString(R.string.cancel), new j1(this));
             builder4.show();
             return true;
@@ -3978,6 +4163,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             intentFilter.addAction("GPXfileRD_DONE_ADD");
             intentFilter.addAction("POI_ON_MAP");
             intentFilter.addAction("POI_ON_TRACK");
+            intentFilter.addAction("TRACK_EDIT_POINT_SELECTED");
             intentFilter.addAction("POI_LONG_PRESSED_POS");
             intentFilter.addAction("UNZIP_CHECK");
             this.M.registerReceiver(this.N, intentFilter);
@@ -4464,6 +4650,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void x0(x3 x3Var) {
         g0();
+        if (X0 == null) {
+            X0 = new Semaphore(1);
+        }
         try {
             X0.acquire(1);
             v2.e("GPS-I", "Show photos of track");
@@ -4478,7 +4667,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception e8) {
             androidx.appcompat.widget.d.c("Error:", e8, "GPS-M");
         }
-        X0.release();
+        if (X0 != null) {
+            X0.release();
+        }
     }
 
     public void y0() {

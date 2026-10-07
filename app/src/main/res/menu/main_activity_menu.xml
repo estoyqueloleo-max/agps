@@ -71,6 +71,29 @@
                         </menu>
                     </item>
                     <item
+                        android:icon="@drawable/ic_edit_location_black_24dp"
+                        android:id="@+id/track_edit_menu"
+                        android:title="@string/edit_track">
+                        <menu>
+                            <item
+                                android:icon="@drawable/ic_clear_black_24dp"
+                                android:id="@+id/track_edit_trim_start"
+                                android:title="@string/edit_track_trim_start"/>
+                            <item
+                                android:icon="@drawable/ic_clear_black_24dp"
+                                android:id="@+id/track_edit_trim_end"
+                                android:title="@string/edit_track_trim_end"/>
+                            <item
+                                android:icon="@drawable/ic_clear_black_24dp"
+                                android:id="@+id/track_edit_delete_point"
+                                android:title="@string/edit_track_delete_point"/>
+                            <item
+                                android:icon="@drawable/ic_rotate_right_black_24dp"
+                                android:id="@+id/track_edit_reverse"
+                                android:title="@string/edit_track_reverse"/>
+                        </menu>
+                    </item>
+                    <item
                         android:icon="@drawable/ic_add_circle_outline_black_24dp"
                         android:id="@+id/gpx_add"
                         android:title="@string/add_track"/>
