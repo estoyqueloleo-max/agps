@@ -1002,5 +1002,139 @@ public class x3 {
         double aheadSlope = calculateAheadSlopePercentage(closestIndex, isReverseMode, 100.0d);
         return new RemainingDistanceResult(remainingDistance, minDistanceToTrack, closestIndex, reachedDestination, aheadSlope);
     }
+
+    /**
+     * Data class representing a detected high point / peak along the track.
+     */
+    public static class PeakInfo {
+        public final int pointIndex;
+        public final double altitudeMeters;
+        public final double distanceMeters;
+        public final boolean isSummit;
+
+        public PeakInfo(int pointIndex, double altitudeMeters, double distanceMeters, boolean isSummit) {
+            this.pointIndex = pointIndex;
+            this.altitudeMeters = altitudeMeters;
+            this.distanceMeters = distanceMeters;
+            this.isSummit = isSummit;
+        }
+    }
+
+    /**
+     * Finds the index of the absolute maximum elevation point (Summit / Cota máxima).
+     *
+     * @return Point index of the summit, or -1 if track has no points.
+     */
+    public int findSummitIndex() {
+        if (this.f3238c == null || this.f3238c.isEmpty()) {
+            return -1;
+        }
+        int summitIndex = 0;
+        double maxAltitude = -Double.MAX_VALUE;
+        int totalPoints = this.f3238c.size();
+
+        for (int i = 0; i < totalPoints; i++) {
+            double alt = this.f3238c.get(i).getAltitude();
+            if (alt > maxAltitude) {
+                maxAltitude = alt;
+                summitIndex = i;
+            }
+        }
+        return summitIndex;
+    }
+
+    /**
+     * Identifies significant local peaks and summits along the track.
+     * Uses a prominence/windowing threshold to avoid noisy GPS fluctuations.
+     *
+     * @param minProminenceMeters Minimum elevation prominence above surrounding points (e.g. 5.0m to 10.0m).
+     * @param minSpacingMeters Minimum distance spacing between peaks (e.g. 200m).
+     * @return List of PeakInfo objects sorted along the route distance from start to end.
+     */
+    public ArrayList<PeakInfo> findPeakIndices(double minProminenceMeters, double minSpacingMeters) {
+        ArrayList<PeakInfo> peaks = new ArrayList<>();
+        if (this.f3238c == null || this.f3238c.size() < 3 || this.f3239d == null || this.f3239d.length < 3) {
+            return peaks;
+        }
+
+        int totalPoints = this.f3238c.size();
+        int summitIndex = findSummitIndex();
+        double minElevation = Double.MAX_VALUE;
+        double maxElevation = -Double.MAX_VALUE;
+
+        for (int i = 0; i < totalPoints; i++) {
+            double alt = this.f3238c.get(i).getAltitude();
+            if (alt < minElevation) minElevation = alt;
+            if (alt > maxElevation) maxElevation = alt;
+        }
+
+        double totalElevationGain = maxElevation - minElevation;
+        // Dynamically adjust prominence if the track is relatively flat
+        double effectiveProminence = Math.max(3.0d, Math.min(minProminenceMeters, totalElevationGain * 0.15d));
+
+        // Detect peaks with local windowing
+        int windowSize = Math.max(3, Math.min(30, totalPoints / 50));
+        double lastPeakDist = -minSpacingMeters;
+
+        for (int i = 1; i < totalPoints - 1; i++) {
+            double currentAlt = this.f3238c.get(i).getAltitude();
+            double currentDist = this.f3239d[Math.min(i, this.f3239d.length - 1)];
+
+            // Check if local maximum in neighborhood
+            boolean isLocalMax = true;
+            double minLeft = currentAlt;
+            double minRight = currentAlt;
+
+            int leftBound = Math.max(0, i - windowSize);
+            int rightBound = Math.min(totalPoints - 1, i + windowSize);
+
+            for (int j = leftBound; j <= rightBound; j++) {
+                if (j == i) continue;
+                double neighborAlt = this.f3238c.get(j).getAltitude();
+                if (neighborAlt > currentAlt) {
+                    isLocalMax = false;
+                    break;
+                }
+                if (j < i && neighborAlt < minLeft) minLeft = neighborAlt;
+                if (j > i && neighborAlt < minRight) minRight = neighborAlt;
+            }
+
+            if (isLocalMax) {
+                double leftDrop = currentAlt - minLeft;
+                double rightDrop = currentAlt - minRight;
+                boolean isSummit = (i == summitIndex);
+
+                if (isSummit || (leftDrop >= effectiveProminence && rightDrop >= effectiveProminence)) {
+                    if (currentDist - lastPeakDist >= minSpacingMeters || isSummit) {
+                        peaks.add(new PeakInfo(i, currentAlt, currentDist, isSummit));
+                        lastPeakDist = currentDist;
+                    }
+                }
+            }
+        }
+
+        // Guarantee summit is in the peak list if not already present
+        boolean summitIncluded = false;
+        for (PeakInfo p : peaks) {
+            if (p.pointIndex == summitIndex) {
+                summitIncluded = true;
+                break;
+            }
+        }
+        if (!summitIncluded && summitIndex >= 0) {
+            double summitDist = this.f3239d[Math.min(summitIndex, this.f3239d.length - 1)];
+            double summitAlt = this.f3238c.get(summitIndex).getAltitude();
+            PeakInfo summitPeak = new PeakInfo(summitIndex, summitAlt, summitDist, true);
+
+            // Insert in correct sorted position by distance
+            int insertPos = 0;
+            while (insertPos < peaks.size() && peaks.get(insertPos).distanceMeters < summitDist) {
+                insertPos++;
+            }
+            peaks.add(insertPos, summitPeak);
+        }
+
+        return peaks;
+    }
 }
 

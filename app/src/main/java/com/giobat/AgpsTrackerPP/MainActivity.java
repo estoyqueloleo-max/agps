@@ -3080,6 +3080,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         y3Var.f3280p.run();
     }
 
+    public void onClick_peakPrev(View view) {
+        if (Y0 != null) {
+            Y0.navigateToPrevPeak();
+        }
+    }
+
+    public void onClick_peakSummit(View view) {
+        if (Y0 != null) {
+            Y0.navigateToSummit();
+        }
+    }
+
+    public void onClick_peakNext(View view) {
+        if (Y0 != null) {
+            Y0.navigateToNextPeak();
+        }
+    }
+
     public void onClick_skipLocSettings(View view) {
         findViewById(R.id.location_not_available).setVisibility(4);
     }

@@ -197,4 +197,61 @@ public class RivasTrackRealWorldTest {
         graphView.draw(canvas);
         assertNotNull("Canvas drawing should complete successfully", bitmap);
     }
+
+    @Test
+    public void testPeakDetectionAndNavigationFromGpx() throws Exception {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("rivas_track.gpx");
+        assertNotNull("rivas_track.gpx must exist in test resources", is);
+
+        r parser = new r(context);
+        boolean parseOk = parser.a(is, context);
+        assertTrue("GPX parse must succeed", parseOk);
+
+        x3 track = new x3(2);
+        boolean loadOk = track.a("Lagunas de Rivas", parser);
+        assertTrue("Track load must succeed", loadOk);
+
+        // 1. Detect Summit (absolute highest elevation point)
+        int summitIndex = track.findSummitIndex();
+        assertTrue("Summit index must be within track bounds", summitIndex >= 0 && summitIndex < track.i());
+        double summitAltitude = track.f3238c.get(summitIndex).getAltitude();
+        for (Location loc : track.f3238c) {
+            assertTrue("No point can be higher than summit", loc.getAltitude() <= summitAltitude);
+        }
+
+        // 2. Detect Local Peaks with prominence
+        java.util.ArrayList<x3.PeakInfo> peaks = track.findPeakIndices(8.0d, 200.0d);
+        assertNotNull("Peaks list should not be null", peaks);
+        assertFalse("Real-world hilly track should have at least 1 peak/summit", peaks.isEmpty());
+
+        // Verify summit is among the peaks
+        boolean hasSummit = false;
+        for (x3.PeakInfo peak : peaks) {
+            if (peak.isSummit) {
+                hasSummit = true;
+                assertEquals(summitIndex, peak.pointIndex);
+                assertEquals(summitAltitude, peak.altitudeMeters, 0.001d);
+            }
+        }
+        assertTrue("Peaks list must contain the summit", hasSummit);
+
+        // 3. Test navigation controls in elevation profile (y3)
+        android.view.LayoutInflater inflater = android.view.LayoutInflater.from(context);
+        android.view.View graphWindowView = inflater.inflate(com.giobat.AgpsTrackerPP.R.layout.ii_graph_window, null);
+        c2.y3 elevationProfile = new c2.y3(context, graphWindowView, track, "Lagunas de Rivas", true);
+
+        // Test Summit jump
+        elevationProfile.navigateToSummit();
+        assertEquals(summitIndex, elevationProfile.f3266a);
+
+        // Test Next Peak step-by-step
+        elevationProfile.navigateToNextPeak();
+        assertTrue("Navigating to next peak should select a valid waypoint",
+                elevationProfile.f3266a >= 0 && elevationProfile.f3266a < track.i());
+
+        // Test Prev Peak step-by-step
+        elevationProfile.navigateToPrevPeak();
+        assertTrue("Navigating to prev peak should select a valid waypoint",
+                elevationProfile.f3266a >= 0 && elevationProfile.f3266a < track.i());
+    }
 }
