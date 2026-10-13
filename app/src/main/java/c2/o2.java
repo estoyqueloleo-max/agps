@@ -115,7 +115,7 @@ public class o2 {
             textView.setText(strB);
             Bitmap bVarB = n2.b((Context) this.f3103d, textView);
             Marker bVar = (Marker) this.f3102c;
-            if (bVar != null) {
+            if (bVar != null && MainActivity.f3626n1 != null) {
                 MainActivity.f3626n1.b(bVar);
             }
             if (strB.equals(XmlPullParser.NO_NAMESPACE)) {
@@ -125,7 +125,9 @@ public class o2 {
             this.f3102c = bVar2;
             bVar2.setVisible(true);
             bVar2.requestRedraw();
-            MainActivity.f3626n1.a((Marker) this.f3102c);
+            if (MainActivity.f3626n1 != null) {
+                MainActivity.f3626n1.a((Marker) this.f3102c);
+            }
         }
     }
 }

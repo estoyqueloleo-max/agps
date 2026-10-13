@@ -826,8 +826,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                 }
                             }
                             String remStr = mainActivity2.getResources().getString(R.string.follow_path_remaining, distFormatted);
+                            String slopeFormatted = String.format(java.util.Locale.US, "%+.1f%%", result.slopePercentage);
+                            String slopeStr = mainActivity2.getResources().getString(R.string.follow_path_slope, slopeFormatted);
                             if (tvAltitudeLabel != null) {
-                                tvAltitudeLabel.setText(remStr + "\n" + altitudeUnitLine);
+                                tvAltitudeLabel.setText(remStr + "\n" + slopeStr + "\n" + altitudeUnitLine);
                                 tvAltitudeLabel.setTextColor(0xff1565c0);
                             }
                         }
@@ -3076,6 +3078,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         y3Var.f3279o = new Handler(Looper.getMainLooper());
         y3Var.f3280p.run();
+    }
+
+    public void onClick_peakPrev(View view) {
+        if (Y0 != null) {
+            Y0.navigateToPrevPeak();
+        }
+    }
+
+    public void onClick_peakSummit(View view) {
+        if (Y0 != null) {
+            Y0.navigateToSummit();
+        }
+    }
+
+    public void onClick_peakNext(View view) {
+        if (Y0 != null) {
+            Y0.navigateToNextPeak();
+        }
     }
 
     public void onClick_skipLocSettings(View view) {

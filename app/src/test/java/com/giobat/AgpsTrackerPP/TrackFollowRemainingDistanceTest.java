@@ -121,21 +121,62 @@ public class TrackFollowRemainingDistanceTest {
     }
 
     @Test
+    public void testAheadSlopePercentageCalculation() {
+        // Configure altitudes:
+        // Point 0: 600m
+        // Point 1: 650m (dist 1000m -> slope ~ +5.0% over first 1000m, but let's test specific segments)
+        // Point 2: 600m (downhill)
+        // Point 3: 600m (flat)
+        // Point 4: 700m (uphill)
+        points.get(0).setAltitude(600.0);
+        points.get(1).setAltitude(650.0);
+        points.get(2).setAltitude(600.0);
+        points.get(3).setAltitude(600.0);
+        points.get(4).setAltitude(700.0);
+
+        // Forward slope:
+        // From index 0 -> index 1 (+50m elevation over 1000m dist) = +5.0%
+        double slope0to1 = track.calculateAheadSlopePercentage(0, false, 100.0);
+        Assert.assertEquals(5.0d, slope0to1, 0.01d);
+
+        // From index 1 -> index 2 (-50m elevation over 1000m dist) = -5.0%
+        double slope1to2 = track.calculateAheadSlopePercentage(1, false, 100.0);
+        Assert.assertEquals(-5.0d, slope1to2, 0.01d);
+
+        // From index 2 -> index 3 (0m elevation over 1000m dist) = 0.0%
+        double slope2to3 = track.calculateAheadSlopePercentage(2, false, 100.0);
+        Assert.assertEquals(0.0d, slope2to3, 0.01d);
+
+        // Reverse mode:
+        // From index 2 going back to index 1 (+50m elevation over 1000m dist) = +5.0%
+        double slopeRev2to1 = track.calculateAheadSlopePercentage(2, true, 100.0);
+        Assert.assertEquals(5.0d, slopeRev2to1, 0.01d);
+
+        // From index 1 going back to index 0 (-50m elevation over 1000m dist) = -5.0%
+        double slopeRev1to0 = track.calculateAheadSlopePercentage(1, true, 100.0);
+        Assert.assertEquals(-5.0d, slopeRev1to0, 0.01d);
+    }
+
+    @Test
     public void testAltitudeBoxLabelFormattingWhenFollowingTrack() {
-        // Formatted strings when remaining distance is at the beginning (top line)
+        // Formatted strings when remaining distance and slope are shown
         String distFormatted = "16.13 km";
         String remPrefix = "Rem: " + distFormatted;
+        String slopeFormatted = "+5.2%";
+        String slopeLine = "Slope: " + slopeFormatted + " (100m)";
         String altitudeUnitLine = "Altitud [m]";
-        String fullLabelText = remPrefix + "\n" + altitudeUnitLine;
+        String fullLabelText = remPrefix + "\n" + slopeLine + "\n" + altitudeUnitLine;
 
-        // Line 1 should be the remaining distance
+        // Line 1: remaining distance, Line 2: slope, Line 3: altitude unit
         String[] lines = fullLabelText.split("\n");
-        Assert.assertEquals(2, lines.length);
+        Assert.assertEquals(3, lines.length);
         Assert.assertEquals("Rem: 16.13 km", lines[0]);
-        Assert.assertEquals("Altitud [m]", lines[1]);
+        Assert.assertEquals("Slope: +5.2% (100m)", lines[1]);
+        Assert.assertEquals("Altitud [m]", lines[2]);
 
-        // Each line should be compact (<= 15 characters) to ensure the block is not widened
-        Assert.assertTrue("Line 1 width exceeds compact limit", lines[0].length() <= 15);
-        Assert.assertTrue("Line 2 width exceeds compact limit", lines[1].length() <= 15);
+        // Each line should be compact (<= 20 characters)
+        Assert.assertTrue("Line 1 width exceeds compact limit", lines[0].length() <= 20);
+        Assert.assertTrue("Line 2 width exceeds compact limit", lines[1].length() <= 20);
+        Assert.assertTrue("Line 3 width exceeds compact limit", lines[2].length() <= 20);
     }
 }
