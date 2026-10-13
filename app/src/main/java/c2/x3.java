@@ -820,7 +820,7 @@ public class x3 {
 
     /**
      * Data class holding the calculated remaining distance, distance to track,
-     * matched waypoint index, and destination status.
+     * matched waypoint index, destination status, and upcoming slope percentage.
      */
     public static class RemainingDistanceResult {
         public final double remainingDistanceMeters;
@@ -828,14 +828,78 @@ public class x3 {
         public final int matchedIndex;
         public final int closestWaypointIndex;
         public final boolean isDestinationReached;
+        public final double slopePercentage;
 
         public RemainingDistanceResult(double remainingDistanceMeters, double distanceToTrackMeters, int matchedIndex, boolean isDestinationReached) {
+            this(remainingDistanceMeters, distanceToTrackMeters, matchedIndex, isDestinationReached, 0.0d);
+        }
+
+        public RemainingDistanceResult(double remainingDistanceMeters, double distanceToTrackMeters, int matchedIndex, boolean isDestinationReached, double slopePercentage) {
             this.remainingDistanceMeters = remainingDistanceMeters;
             this.distanceToTrackMeters = distanceToTrackMeters;
             this.matchedIndex = matchedIndex;
             this.closestWaypointIndex = matchedIndex;
             this.isDestinationReached = isDestinationReached;
+            this.slopePercentage = slopePercentage;
         }
+    }
+
+    /**
+     * Calculates the upcoming terrain slope percentage over a target distance ahead (e.g. 100 meters)
+     * starting from the given waypoint index, taking direction into account.
+     *
+     * @param fromIndex Waypoint index to calculate slope from.
+     * @param isReverseMode True if following track in reverse (Track Back).
+     * @param targetDistanceMeters Target ahead distance in meters (e.g. 100.0).
+     * @return Slope percentage ((deltaAltitude / deltaDistance) * 100). Positive for uphill, negative for downhill.
+     */
+    public double calculateAheadSlopePercentage(int fromIndex, boolean isReverseMode, double targetDistanceMeters) {
+        if (this.f3238c == null || this.f3238c.isEmpty() || this.f3239d == null || this.f3239d.length == 0) {
+            return 0.0d;
+        }
+        int totalPoints = this.f3238c.size();
+        if (fromIndex < 0 || fromIndex >= totalPoints) {
+            return 0.0d;
+        }
+
+        Location startPoint = this.f3238c.get(fromIndex);
+        double startCumDist = this.f3239d[Math.min(fromIndex, this.f3239d.length - 1)];
+        double startAltitude = startPoint.getAltitude();
+
+        int targetIndex = fromIndex;
+        if (!isReverseMode) {
+            for (int i = fromIndex + 1; i < totalPoints; i++) {
+                targetIndex = i;
+                double distDelta = this.f3239d[Math.min(i, this.f3239d.length - 1)] - startCumDist;
+                if (distDelta >= targetDistanceMeters) {
+                    break;
+                }
+            }
+        } else {
+            for (int i = fromIndex - 1; i >= 0; i--) {
+                targetIndex = i;
+                double distDelta = startCumDist - this.f3239d[Math.min(i, this.f3239d.length - 1)];
+                if (distDelta >= targetDistanceMeters) {
+                    break;
+                }
+            }
+        }
+
+        if (targetIndex == fromIndex) {
+            return 0.0d;
+        }
+
+        Location endPoint = this.f3238c.get(targetIndex);
+        double endCumDist = this.f3239d[Math.min(targetIndex, this.f3239d.length - 1)];
+        double deltaDistance = Math.abs(endCumDist - startCumDist);
+
+        if (deltaDistance < 10.0d) {
+            return 0.0d;
+        }
+
+        double endAltitude = endPoint.getAltitude();
+        double deltaAltitude = !isReverseMode ? (endAltitude - startAltitude) : (endAltitude - startAltitude);
+        return (deltaAltitude / deltaDistance) * 100.0d;
     }
 
     /**
@@ -848,7 +912,7 @@ public class x3 {
             c();
         }
         if (userLocation == null || this.f3238c == null || this.f3238c.isEmpty() || this.f3239d == null || this.f3239d.length == 0) {
-            return new RemainingDistanceResult(0.0d, 0.0d, 0, false);
+            return new RemainingDistanceResult(0.0d, 0.0d, 0, false, 0.0d);
         }
 
         int totalPoints = this.f3238c.size();
@@ -935,7 +999,8 @@ public class x3 {
                     || (coveredDistance < totalTrackDistance * 0.25d && userLocation.distanceTo(this.f3238c.get(0)) < 30.0d);
         }
 
-        return new RemainingDistanceResult(remainingDistance, minDistanceToTrack, closestIndex, reachedDestination);
+        double aheadSlope = calculateAheadSlopePercentage(closestIndex, isReverseMode, 100.0d);
+        return new RemainingDistanceResult(remainingDistance, minDistanceToTrack, closestIndex, reachedDestination, aheadSlope);
     }
 }
 

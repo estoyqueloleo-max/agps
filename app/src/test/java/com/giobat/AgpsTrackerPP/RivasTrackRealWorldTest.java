@@ -110,6 +110,14 @@ public class RivasTrackRealWorldTest {
         x3.RemainingDistanceResult resEnd = track.calculateRemainingDistance(userAtEnd, false, 2960);
         assertTrue("At end of track after following, destination SHOULD be reached", resEnd.isDestinationReached);
         assertTrue("Remaining distance at end should be near 0", resEnd.remainingDistanceMeters < 30.0d);
+
+        // Verify slope calculation on real-world GPX data
+        double slopeAtStart = track.calculateAheadSlopePercentage(0, false, 100.0d);
+        assertFalse("Slope at start must be finite", Double.isNaN(slopeAtStart) || Double.isInfinite(slopeAtStart));
+        double slopeMid = resMid.slopePercentage;
+        assertFalse("Slope midway must be finite", Double.isNaN(slopeMid) || Double.isInfinite(slopeMid));
+        assertTrue("Slope percentage on Rivas terrain should be within realistic bounds (-30% to +30%)",
+                slopeMid >= -30.0d && slopeMid <= 30.0d);
     }
 
     @Test
