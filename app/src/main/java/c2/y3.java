@@ -170,6 +170,8 @@ public class y3 {
         graphView.setVisibility(0);
         this.f3275j = 1;
         this.f3276k = context.getResources();
+        this.f3270e = new p5.b[]{new p5.b(0.0d, 0.0d)};
+        this.f3267b = new p5.d<>(this.f3270e);
     }
 
     public void a() {
@@ -410,6 +412,10 @@ public class y3 {
     public int currentPeakIndex = -1;
 
     public void selectPointIndex(int pointIndex) {
+        selectPointIndex(pointIndex, true);
+    }
+
+    public void selectPointIndex(int pointIndex, boolean centerMap) {
         if (this.f3274i == null || this.f3274i.f3238c == null || pointIndex < 0 || pointIndex >= this.f3274i.f3238c.size()) {
             return;
         }
@@ -436,13 +442,15 @@ public class y3 {
             this.f3267b.k(this.f3270e);
         }
 
-        // Center map on the selected waypoint
-        try {
-            if (MainActivity.M0 != null) {
-                MainActivity.M0.setCenter(new org.mapsforge.core.model.LatLong(latitude, longitude));
+        // Center map on the selected waypoint if requested
+        if (centerMap) {
+            try {
+                if (MainActivity.M0 != null) {
+                    MainActivity.M0.setCenter(new org.mapsforge.core.model.LatLong(latitude, longitude));
+                }
+            } catch (Exception centerException) {
+                v2.e("GPS-M", "Map center on peak error: " + centerException.getMessage());
             }
-        } catch (Exception centerException) {
-            v2.e("GPS-M", "Map center on peak error: " + centerException.getMessage());
         }
     }
 
