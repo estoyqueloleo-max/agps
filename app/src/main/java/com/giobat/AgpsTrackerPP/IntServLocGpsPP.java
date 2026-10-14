@@ -95,20 +95,13 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
     public long f3592l = 0;
     public long m = 0;
 
-    /* JADX INFO: renamed from: n, reason: collision with root package name */
-    public int f3593n = 0;
-
-    /* JADX INFO: renamed from: r, reason: collision with root package name */
     public final IBinder f3597r = new d();
-
-    /* JADX INFO: renamed from: t, reason: collision with root package name */
-    public boolean f3599t = false;
-
-    /* JADX INFO: renamed from: u, reason: collision with root package name */
-    public long f3600u = 0;
-
-    /* JADX INFO: renamed from: v, reason: collision with root package name */
-    public int f3601v = 0;
+    /* Track follow deviation and alarm state */
+    public int consecutiveOffRouteReadings = 0;
+    public boolean isOffRouteAlarmActive = false;
+    public long lastOffRouteAlarmTimestamp = 0;
+    public int offRouteAlarmBeepCount = 0;
+    public OffRouteAudioPlayer offRouteAudioPlayer;
     public final CharSequence x = "gpsService Notification";
 
     public class a extends LocationCallback {
@@ -324,10 +317,6 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
         boolean z7;
         boolean z8;
         x3 x3Var;
-        boolean z9;
-        long jCurrentTimeMillis;
-        int i8;
-        MediaPlayer mediaPlayer;
         x3 x3Var2;
         Location location2 = new Location("dummy");
         boolean z10 = AgpsApplication.f3566h;
@@ -513,123 +502,78 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
                 }
             }
         }
-        if (!AgpsApplication.m || (x3Var2 = AgpsApplication.f3574q) == null || x3Var2.i() <= 1) {
-            if (AgpsApplication.f3571n && (x3Var = AgpsApplication.f3575r) != null) {
-                z8 = true;
-                if (x3Var.i() <= 1) {
-                    z7 = false;
-                } else if (new i3(30.0d, MainActivity.F1, MainActivity.G1).a(AgpsApplication.f3575r, MainActivity.f3613a1)) {
-                    z9 = false;
-                    this.f3593n = 0;
-                } else {
-                    this.f3593n++;
-                    z8 = true;
-                }
-                if (this.f3593n >= 3) {
-                    AgpsApplication.f3572o = z8;
-                } else {
-                    AgpsApplication.f3572o = false;
-                }
-                if (!AgpsApplication.f3572o) {
-                    this.f3601v = 0;
-                    this.f3599t = false;
-                    return;
-                }
-                jCurrentTimeMillis = System.currentTimeMillis();
-                if (!this.f3599t) {
-                    v2.e("GPS-S", "*# Follow Path Alarm Beep Start!!");
-                    i8 = this.f3601v;
-                    this.f3601v = i8 + 1;
-                    if (i8 < 4) {
-                        J.start();
-                    }
-                    this.f3599t = true;
-                    this.f3600u = jCurrentTimeMillis;
-                }
-                if (jCurrentTimeMillis - this.f3600u > 5000) {
-                    v2.e("GPS-S", "*# Stop Beep");
-                    mediaPlayer = J;
-                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                        J.stop();
-                    }
-                    this.f3599t = false;
-                    return;
-                }
-                return;
-            }
-            z7 = false;
-            z8 = true;
-            this.f3593n = 0;
-            if (this.f3593n >= 3) {
-                AgpsApplication.f3572o = z8;
-            } else {
-                AgpsApplication.f3572o = false;
-            }
-            if (!AgpsApplication.f3572o) {
-                this.f3601v = 0;
-                this.f3599t = false;
-                return;
-            }
-            jCurrentTimeMillis = System.currentTimeMillis();
-            if (!this.f3599t) {
-                if (jCurrentTimeMillis - this.f3600u > 5000) {
-                    v2.e("GPS-S", "*# Stop Beep");
-                    mediaPlayer = J;
-                    if (mediaPlayer != null) {
-                        J.stop();
-                    }
-                    this.f3599t = false;
-                    return;
-                }
-                return;
-            }
-            v2.e("GPS-S", "*# Follow Path Alarm Beep Start!!");
-            i8 = this.f3601v;
-            this.f3601v = i8 + 1;
-            if (i8 < 4) {
-                J.start();
-            }
-            this.f3599t = true;
-            this.f3600u = jCurrentTimeMillis;
-        }
-        if (new i3(30.0d).a(AgpsApplication.f3574q, MainActivity.f3613a1)) {
-            this.f3593n = 0;
-        } else {
-            this.f3593n++;
-        }
-        z9 = false;
-        z8 = true;
-        if (this.f3593n >= 3) {
-            AgpsApplication.f3572o = z8;
-        } else {
-            AgpsApplication.f3572o = false;
-        }
-        if (!AgpsApplication.f3572o) {
-            this.f3601v = 0;
-            this.f3599t = false;
+        checkFollowTrackDeviation();
+    }
+
+    /**
+     * Checks whether current position is deviating from the followed track (>30m),
+     * and manages the off-route alarm state and audible alerts.
+     */
+    public void checkFollowTrackDeviation() {
+        boolean isFollowingLoaded = AgpsApplication.m || AgpsApplication.isFollowLoadedTrackActive;
+        boolean isFollowingReturn = AgpsApplication.f3571n || AgpsApplication.isFollowReturnTrackActive;
+        if (!isFollowingLoaded && !isFollowingReturn) {
+            resetOffRouteAlarm();
             return;
         }
-        jCurrentTimeMillis = System.currentTimeMillis();
-        if (!this.f3599t) {
-            if (jCurrentTimeMillis - this.f3600u > 5000) {
-                v2.e("GPS-S", "*# Stop Beep");
-                mediaPlayer = J;
-                if (mediaPlayer != null) {
-                    J.stop();
-                }
-                this.f3599t = false;
-                return;
+
+        boolean onRoute = true;
+        if (isFollowingReturn && AgpsApplication.f3575r != null) {
+            x3 recordedTrack = AgpsApplication.f3575r;
+            if (recordedTrack.i() > 1) {
+                onRoute = new i3(30.0d, MainActivity.F1, MainActivity.G1).a(recordedTrack, MainActivity.f3613a1);
             }
-            return;
+        } else if (isFollowingLoaded && AgpsApplication.f3574q != null) {
+            x3 loadedTrack = AgpsApplication.f3574q;
+            if (loadedTrack.i() > 1) {
+                onRoute = new i3(30.0d).a(loadedTrack, MainActivity.f3613a1);
+            }
         }
-        v2.e("GPS-S", "*# Follow Path Alarm Beep Start!!");
-        i8 = this.f3601v;
-        this.f3601v = i8 + 1;
-        if (i8 < 4) {
-            J.start();
+
+        if (onRoute) {
+            this.consecutiveOffRouteReadings = 0;
+            resetOffRouteAlarm();
+        } else {
+            this.consecutiveOffRouteReadings++;
+            if (this.consecutiveOffRouteReadings >= 3) {
+                triggerOffRouteAlarm();
+            }
         }
-        this.f3599t = true;
-        this.f3600u = jCurrentTimeMillis;
+    }
+
+    private void resetOffRouteAlarm() {
+        AgpsApplication.f3572o = false;
+        AgpsApplication.isFollowPathAlarmTriggered = false;
+        this.offRouteAlarmBeepCount = 0;
+        this.isOffRouteAlarmActive = false;
+        if (this.offRouteAudioPlayer != null) {
+            this.offRouteAudioPlayer.stopAlert();
+        }
+    }
+
+    private void triggerOffRouteAlarm() {
+        AgpsApplication.f3572o = true;
+        AgpsApplication.isFollowPathAlarmTriggered = true;
+        long currentTime = System.currentTimeMillis();
+
+        if (this.offRouteAudioPlayer == null) {
+            this.offRouteAudioPlayer = new OffRouteAudioPlayer(this);
+        }
+
+        if (!this.isOffRouteAlarmActive) {
+            // First time or starting a new alert cycle
+            v2.e("GPS-S", "*# Follow Path Alarm Tone Start!!");
+            this.offRouteAlarmBeepCount++;
+            if (this.offRouteAlarmBeepCount <= 4) {
+                this.offRouteAudioPlayer.playAlert();
+            }
+            this.isOffRouteAlarmActive = true;
+            this.lastOffRouteAlarmTimestamp = currentTime;
+        } else if (currentTime - this.lastOffRouteAlarmTimestamp > 5000) {
+            // After 5 seconds, reset active cycle flag so subsequent alarms can sound if still off-route
+            v2.e("GPS-S", "*# Follow Path Alarm Tone Cycle Reset");
+            this.isOffRouteAlarmActive = false;
+        }
     }
 
     @Override // android.hardware.SensorEventListener
@@ -662,6 +606,20 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
             } catch (Exception ignored) {
             }
             z = null;
+        }
+        if (this.offRouteAudioPlayer != null) {
+            this.offRouteAudioPlayer.release();
+            this.offRouteAudioPlayer = null;
+        }
+        if (J != null) {
+            try {
+                if (J.isPlaying()) {
+                    J.stop();
+                }
+                J.release();
+            } catch (Exception ignored) {
+            }
+            J = null;
         }
         try {
             stopForeground(true);
