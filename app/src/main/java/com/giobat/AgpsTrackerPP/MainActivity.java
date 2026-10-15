@@ -452,7 +452,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             x3 x3Var;
             MapView mapView;
             MainActivity mainActivity = MainActivity.this;
-            mainActivity.A.postDelayed(mainActivity.O, 1000L);
+            if (mainActivity.A != null) {
+                mainActivity.A.postDelayed(mainActivity.O, 1000L);
+            }
             MainActivity mainActivity2 = MainActivity.this;
             Objects.requireNonNull(mainActivity2);
             mainActivity2.U = System.currentTimeMillis();
@@ -771,18 +773,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mainActivity2.f0();
             mainActivity2.updateLavagnaVisibility();
             mainActivity2.G0();
-            View viewFindViewById9 = mainActivity2.findViewById(R.id.follow_path_monitor);
-            if (viewFindViewById9 != null) {
-                viewFindViewById9.setVisibility(8);
-            }
-            View viewWarnings = mainActivity2.findViewById(R.id.follow_path_warnings);
-            if (viewWarnings != null) {
-                viewWarnings.setVisibility(8);
-            }
             boolean isFollowActive = AgpsApplication.m || AgpsApplication.f3571n;
             TextView tvAltitudeLabel = (TextView) mainActivity2.findViewById(R.id.label1);
+            View viewWarnings = mainActivity2.findViewById(R.id.follow_path_warnings);
+            View viewWarningsIcon = mainActivity2.findViewById(R.id.follow_path_alarm_icon);
+            TextView tvWarningsText = (TextView) mainActivity2.findViewById(R.id.follow_path_monitor_text);
             if (!isFollowActive) {
                 AgpsApplication.f3572o = false;
+                if (viewWarnings != null) {
+                    viewWarnings.setVisibility(8);
+                }
                 if (tvAltitudeLabel != null) {
                     tvAltitudeLabel.setText(mainActivity2.getString(R.string.altitude_box) + " [" + MainActivity.y() + "]");
                     tvAltitudeLabel.setTextColor(0xff000000);
@@ -796,7 +796,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         tvAltitudeLabel.setText(alarmMsg + "\n" + altitudeUnitLine);
                         tvAltitudeLabel.setTextColor(0xffd32f2f);
                     }
+                    if (viewWarnings != null) {
+                        viewWarnings.setVisibility(0);
+                    }
+                    if (viewWarningsIcon != null) {
+                        viewWarningsIcon.setVisibility(0);
+                    }
+                    if (tvWarningsText != null) {
+                        tvWarningsText.setText(alarmMsg);
+                    }
                 } else {
+                    if (viewWarnings != null) {
+                        viewWarnings.setVisibility(8);
+                    }
                     x3 activeTrack = AgpsApplication.f3571n ? AgpsApplication.f3575r : AgpsApplication.f3574q;
                     if (activeTrack != null && MainActivity.f3613a1 != null && activeTrack.i() > 0) {
                         boolean isReverseMode = AgpsApplication.f3571n;
@@ -2295,10 +2307,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AgpsApplication.isFollowReturnTrackActive = false;
         AgpsApplication.resetFollowTrackProgress();
         // Note: Off-route audible alert is self-contained inside IntServLocGpsPP via OffRouteAudioPlayer.
-        // We ensure audio stream volume can be adjusted if needed, but do not rely on static MediaPlayer.
+        // We ensure audio stream volume (STREAM_MUSIC) is active and audible.
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (audioManager != null) {
-            audioManager.adjustStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI);
         }
     }
 
@@ -2319,7 +2331,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Note: Off-route audible alert is self-contained inside IntServLocGpsPP via OffRouteAudioPlayer.
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (audioManager != null) {
-            audioManager.adjustStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI);
         }
     }
 
@@ -2848,6 +2860,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onClick_followPathMonitorLoadedTrack(View view) {
         if (!((CheckBox) view).isChecked()) {
             AgpsApplication.m = false;
+            AgpsApplication.isFollowLoadedTrackActive = false;
             return;
         }
         if (!this.f3639a0) {
@@ -2998,6 +3011,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onClick_returnPathMonitor(View view) {
         if (!((CheckBox) view).isChecked()) {
             AgpsApplication.f3571n = false;
+            AgpsApplication.isFollowReturnTrackActive = false;
             return;
         }
         if (!H1) {

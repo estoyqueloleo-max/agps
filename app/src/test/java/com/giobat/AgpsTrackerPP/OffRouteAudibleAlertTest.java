@@ -176,4 +176,45 @@ public class OffRouteAudibleAlertTest {
         player.stopAlert();
         player.release();
     }
+
+    @Test
+    public void testVisualAlertElementsOnMainActivity() {
+        org.robolectric.shadows.ShadowApplication.getInstance().grantPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION);
+        org.robolectric.android.controller.ActivityController<MainActivity> activityController =
+                Robolectric.buildActivity(MainActivity.class).setup();
+        MainActivity activity = activityController.get();
+
+        android.view.View viewWarnings = activity.findViewById(R.id.follow_path_warnings);
+        android.widget.TextView tvAltitudeLabel = (android.widget.TextView) activity.findViewById(R.id.label1);
+        android.widget.TextView tvWarningsText = (android.widget.TextView) activity.findViewById(R.id.follow_path_monitor_text);
+
+        // Initially not following track -> warnings gone
+        Assert.assertNotNull(viewWarnings);
+        Assert.assertEquals(android.view.View.GONE, viewWarnings.getVisibility());
+
+        // Enable follow track and trigger off-route alarm
+        activity.P = 8;
+        activity.T = true;
+        activity.L = false;
+        MainActivity.f3613a1 = new android.location.Location("TEST_GPS");
+        MainActivity.f3613a1.setLatitude(40.4168);
+        MainActivity.f3613a1.setLongitude(-3.7038);
+        MainActivity.f3613a1.setAltitude(600.0);
+        AgpsApplication.isFollowLoadedTrackActive = true;
+        AgpsApplication.m = true;
+        AgpsApplication.f3572o = true;
+
+        // Run UI update runnable
+        activity.O.run();
+
+        // Off-route warning container must be visible, with warning message
+        Assert.assertEquals(android.view.View.VISIBLE, viewWarnings.getVisibility());
+        Assert.assertNotNull(tvWarningsText);
+        Assert.assertTrue(tvWarningsText.getText().toString().contains("Off route"));
+        Assert.assertNotNull(tvAltitudeLabel);
+        Assert.assertTrue(tvAltitudeLabel.getText().toString().contains("Off route"));
+
+        // Clean up
+        activityController.destroy();
+    }
 }
