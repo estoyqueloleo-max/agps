@@ -702,7 +702,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
             mainActivity2.H0();
-            mainActivity2.z.l(MainActivity.f3613a1);
+            if (mainActivity2.z != null) {
+                mainActivity2.z.l(MainActivity.f3613a1);
+            }
             String str2 = XmlPullParser.NO_NAMESPACE;
             x3 x3Var3 = AgpsApplication.f3575r;
             if (x3Var3 != null && x3Var3.i() > 0) {
@@ -765,7 +767,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 viewFindViewById8.setVisibility(0);
             }
             if (AgpsApplication.f3570l && (x3Var = AgpsApplication.f3574q) != null && x3Var.i() > 1) {
-                AgpsApplication.B = mainActivity2.z.m(AgpsApplication.f3574q);
+                if (mainActivity2.z != null) {
+                    AgpsApplication.B = mainActivity2.z.m(AgpsApplication.f3574q);
+                }
                 AgpsApplication.f3570l = false;
                 MainActivity.isAutoCenterMapOnGps = false;
                 MainActivity.J0 = false;
@@ -869,7 +873,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             boolean z7 = AgpsApplication.f3566h;
             mainActivity2.D0();
-            if (mainActivity2.z.f3061e.d()) {
+            if (mainActivity2.z != null && mainActivity2.z.f3061e != null && mainActivity2.z.f3061e.d()) {
                 mainActivity2.f3652n0.setVisibility(0);
                 mainActivity2.f3651m0.setIndeterminate(false);
                 mainActivity2.E0();

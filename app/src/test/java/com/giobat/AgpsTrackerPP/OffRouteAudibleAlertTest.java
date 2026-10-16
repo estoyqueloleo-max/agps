@@ -217,4 +217,26 @@ public class OffRouteAudibleAlertTest {
         // Clean up
         activityController.destroy();
     }
+
+    @Test
+    public void testLocationUpdatesThroughServiceTriggerAlarmEvenWithMarginalAccuracy() {
+        AgpsApplication.isFollowLoadedTrackActive = true;
+        AgpsApplication.m = true;
+        AgpsApplication.f3574q = createReferenceTrack(40.4168, -3.7038);
+
+        // Send 3 GPS updates through c(Location) far away (>1 km) with accuracy > 30m
+        for (int i = 0; i < 3; i++) {
+            Location loc = new Location("FUSED");
+            loc.setLatitude(40.4500);
+            loc.setLongitude(-3.7038);
+            loc.setAltitude(650.0);
+            loc.setAccuracy(45.0f); // Marginal accuracy (>30m)
+            loc.setTime(System.currentTimeMillis() + (i * 1000));
+            service.c(loc);
+        }
+
+        Assert.assertTrue("Off-route alarm should trigger even with marginal accuracy", AgpsApplication.f3572o);
+        Assert.assertTrue(AgpsApplication.isFollowPathAlarmTriggered);
+        Assert.assertEquals(1, service.offRouteAlarmBeepCount);
+    }
 }

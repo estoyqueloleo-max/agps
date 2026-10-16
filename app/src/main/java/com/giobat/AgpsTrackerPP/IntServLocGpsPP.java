@@ -63,7 +63,7 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
     public FusedLocationProviderClient f3594o;
 
     /* JADX INFO: renamed from: p, reason: collision with root package name */
-    public z f3595p;
+    public z f3595p = new z();
 
     /* JADX INFO: renamed from: q, reason: collision with root package name */
     public SensorManager f3596q;
@@ -77,7 +77,7 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
     public static long D = 0;
     public static int E = 5;
     public static Location F = new Location("FUSED_COPY");
-    public static Location G = null;
+    public static Location G = new Location("LAST_KNOWN");
     public static long H = 0;
     public static boolean L = false;
     public static boolean M = false;
@@ -381,8 +381,7 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
         p pVar = this.f3589i;
         double latitude = location2.getLatitude();
         double longitude = location2.getLongitude();
-        Objects.requireNonNull(pVar);
-        if (latitude < -90.0d || latitude > 90.0d || longitude < -360.0d || longitude > 360.0d || !p.f3106d) {
+        if (pVar == null || latitude < -90.0d || latitude > 90.0d || longitude < -360.0d || longitude > 360.0d || !p.f3106d) {
             d8 = p.f3108f;
         } else {
             double d9 = 90.0d - latitude;
@@ -404,9 +403,10 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
         C = d8;
         if (d8 == p.f3108f) {
             v2.e("GPS-S", "----------------------------------------->  EGM96 invalid data");
-            AgpsApplication.f3572o = false;
+            MainActivity.f3613a1.set(location2);
             E = 3;
             this.f3595p.c();
+            checkFollowTrackDeviation();
             return;
         }
         location2.setAltitude(location2.getAltitude() - C);
@@ -415,9 +415,9 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
             sbA5.append(location2.getAccuracy());
             v2.e("GPS-S", sbA5.toString());
             MainActivity.f3613a1.set(location2);
-            AgpsApplication.f3572o = false;
             E = 3;
             this.f3595p.c();
+            checkFollowTrackDeviation();
             return;
         }
         z zVar = this.f3595p;
@@ -459,7 +459,7 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
             StringBuilder sbA6 = android.support.v4.media.b.a(" Stabilisation CountDown");
             sbA6.append(E);
             v2.e("GPS-S", sbA6.toString());
-            AgpsApplication.f3572o = false;
+            checkFollowTrackDeviation();
             Location location4 = MainActivity.f3613a1;
             if (location4 != null) {
                 this.f3588h.set(location4);
@@ -520,21 +520,25 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
         boolean onRoute = true;
         if (isFollowingReturn && AgpsApplication.f3575r != null) {
             x3 recordedTrack = AgpsApplication.f3575r;
-            if (recordedTrack.i() > 1) {
+            if (recordedTrack.i() > 1 && MainActivity.f3613a1 != null) {
                 onRoute = new i3(30.0d, MainActivity.F1, MainActivity.G1).a(recordedTrack, MainActivity.f3613a1);
             }
         } else if (isFollowingLoaded && AgpsApplication.f3574q != null) {
             x3 loadedTrack = AgpsApplication.f3574q;
-            if (loadedTrack.i() > 1) {
+            if (loadedTrack.i() > 1 && MainActivity.f3613a1 != null) {
                 onRoute = new i3(30.0d).a(loadedTrack, MainActivity.f3613a1);
             }
         }
 
         if (onRoute) {
+            if (this.consecutiveOffRouteReadings > 0) {
+                v2.e("GPS-Audio", "Back on route, resetting consecutive readings (was " + this.consecutiveOffRouteReadings + ")");
+            }
             this.consecutiveOffRouteReadings = 0;
             resetOffRouteAlarm();
         } else {
             this.consecutiveOffRouteReadings++;
+            v2.e("GPS-Audio", "Off-route detected! Consecutive count=" + this.consecutiveOffRouteReadings + "/3");
             if (this.consecutiveOffRouteReadings >= 3) {
                 triggerOffRouteAlarm();
             }
@@ -562,7 +566,7 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
 
         if (!this.isOffRouteAlarmActive) {
             // First time or starting a new alert cycle
-            v2.e("GPS-S", "*# Follow Path Alarm Tone Start!!");
+            v2.e("GPS-Audio", "*# Follow Path Alarm Tone Start! Beep count=" + (this.offRouteAlarmBeepCount + 1));
             this.offRouteAlarmBeepCount++;
             if (this.offRouteAlarmBeepCount <= 4) {
                 this.offRouteAudioPlayer.playAlert();
@@ -571,7 +575,7 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
             this.lastOffRouteAlarmTimestamp = currentTime;
         } else if (currentTime - this.lastOffRouteAlarmTimestamp > 5000) {
             // After 5 seconds, reset active cycle flag so subsequent alarms can sound if still off-route
-            v2.e("GPS-S", "*# Follow Path Alarm Tone Cycle Reset");
+            v2.e("GPS-Audio", "*# Follow Path Alarm Tone Cycle Reset after 5s");
             this.isOffRouteAlarmActive = false;
         }
     }
