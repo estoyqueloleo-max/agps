@@ -873,31 +873,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             boolean z7 = AgpsApplication.f3566h;
             mainActivity2.D0();
-            if (mainActivity2.z != null && mainActivity2.z.f3061e != null && mainActivity2.z.f3061e.d()) {
-                mainActivity2.f3652n0.setVisibility(0);
-                mainActivity2.f3651m0.setIndeterminate(false);
-                mainActivity2.E0();
-            } else if (SFtpServerFileDialogActivity.A) {
-                mainActivity2.f3652n0.setVisibility(0);
-                mainActivity2.f3651m0.setIndeterminate(false);
-                mainActivity2.Q(mainActivity2, SFtpServerFileDialogActivity.z);
-            } else if (UnzipProgressState.isUnzipping) {
-                mainActivity2.f3652n0.setVisibility(0);
-                mainActivity2.f3651m0.setIndeterminate(true);
-                mainActivity2.I0("unzipping", UnzipProgressState.unzipProgressBytes);
-            } else {
-                mainActivity2.f3652n0.setVisibility(8);
+            if (mainActivity2.f3652n0 != null) {
+                if (mainActivity2.z != null && mainActivity2.z.f3061e != null && mainActivity2.z.f3061e.d()) {
+                    mainActivity2.f3652n0.setVisibility(0);
+                    if (mainActivity2.f3651m0 != null) {
+                        mainActivity2.f3651m0.setIndeterminate(false);
+                    }
+                    mainActivity2.E0();
+                } else if (SFtpServerFileDialogActivity.A) {
+                    mainActivity2.f3652n0.setVisibility(0);
+                    if (mainActivity2.f3651m0 != null) {
+                        mainActivity2.f3651m0.setIndeterminate(false);
+                    }
+                    mainActivity2.Q(mainActivity2, SFtpServerFileDialogActivity.z);
+                } else if (UnzipProgressState.isUnzipping) {
+                    mainActivity2.f3652n0.setVisibility(0);
+                    if (mainActivity2.f3651m0 != null) {
+                        mainActivity2.f3651m0.setIndeterminate(true);
+                    }
+                    mainActivity2.I0("unzipping", UnzipProgressState.unzipProgressBytes);
+                } else {
+                    mainActivity2.f3652n0.setVisibility(8);
+                }
             }
             ProgressBar progressBar2 = (ProgressBar) mainActivity2.findViewById(R.id.lavagna_track_progress_bar);
             Button button2 = (Button) mainActivity2.findViewById(R.id.lavagna_track_elev_profile);
             if (MainActivity.f3614b1) {
-                progressBar2.setVisibility(0);
-                if (mainActivity2.B == 1) {
+                if (progressBar2 != null) {
+                    progressBar2.setVisibility(0);
+                }
+                if (mainActivity2.B == 1 && button2 != null) {
                     button2.setVisibility(4);
                 }
             } else {
-                progressBar2.setVisibility(8);
-                if (mainActivity2.B == 1) {
+                if (progressBar2 != null) {
+                    progressBar2.setVisibility(8);
+                }
+                if (mainActivity2.B == 1 && button2 != null) {
                     button2.setVisibility(0);
                 }
             }
@@ -912,19 +924,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 mainActivity2.j0(b8);
             }
             View viewFindViewById10 = mainActivity2.findViewById(R.id.zoom_buttons);
-            if (MainActivity.f3636x1) {
-                viewFindViewById10.setVisibility(0);
-            } else {
-                viewFindViewById10.setVisibility(8);
+            if (viewFindViewById10 != null) {
+                if (MainActivity.f3636x1) {
+                    viewFindViewById10.setVisibility(0);
+                } else {
+                    viewFindViewById10.setVisibility(8);
+                }
             }
-            if (MainActivity.f3630r1) {
-                mainActivity2.J.setVisibility(0);
-                MainActivity.f3630r1 = false;
-            }
-            if (MainActivity.f3631s1) {
-                mainActivity2.J.setVisibility(8);
-                MainActivity.f3631s1 = false;
-                MainActivity.f3630r1 = false;
+            if (mainActivity2.J != null) {
+                if (MainActivity.f3630r1) {
+                    mainActivity2.J.setVisibility(0);
+                    MainActivity.f3630r1 = false;
+                }
+                if (MainActivity.f3631s1) {
+                    mainActivity2.J.setVisibility(8);
+                    MainActivity.f3631s1 = false;
+                    MainActivity.f3630r1 = false;
+                }
             }
         }
     }
