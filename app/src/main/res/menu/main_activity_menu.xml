@@ -88,6 +88,10 @@
                                 android:id="@+id/track_edit_delete_point"
                                 android:title="@string/edit_track_delete_point"/>
                             <item
+                                android:icon="@drawable/ic_edit_location_black_24dp"
+                                android:id="@+id/track_edit_move_point"
+                                android:title="@string/edit_track_move_point"/>
+                            <item
                                 android:icon="@drawable/ic_rotate_right_black_24dp"
                                 android:id="@+id/track_edit_reverse"
                                 android:title="@string/edit_track_reverse"/>

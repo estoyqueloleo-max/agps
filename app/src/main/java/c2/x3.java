@@ -1036,6 +1036,35 @@ public class x3 {
     }
 
     /**
+     * Moves a point at globalIndex to new coordinates.
+     *
+     * @param globalIndex The global index of the point to move.
+     * @param newLatitude New latitude in degrees.
+     * @param newLongitude New longitude in degrees.
+     * @return true if the point was updated.
+     */
+    public boolean movePointAt(int globalIndex, double newLatitude, double newLongitude) {
+        if (globalIndex < 0 || globalIndex >= i()) {
+            return false;
+        }
+        int currentIndex = 0;
+        for (q3 segment : this.f3236a) {
+            int segmentSize = segment.f3123b.size();
+            if (globalIndex < currentIndex + segmentSize) {
+                int indexInSegment = globalIndex - currentIndex;
+                Location loc = segment.f3123b.get(indexInSegment);
+                loc.setLatitude(newLatitude);
+                loc.setLongitude(newLongitude);
+                segment.syncLatLongs();
+                recalculateAfterEdit();
+                return true;
+            }
+            currentIndex += segmentSize;
+        }
+        return false;
+    }
+
+    /**
      * Inverts the direction of the entire track (reverses points within segments and reverses segment order).
      */
     public void reverseTrack() {

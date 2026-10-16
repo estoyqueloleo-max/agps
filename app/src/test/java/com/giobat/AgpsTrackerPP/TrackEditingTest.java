@@ -217,6 +217,118 @@ public class TrackEditingTest {
     }
 
     @Test
+    public void testMovePointAtUpdatesCoordinatesAndSyncs() throws Exception {
+        x3 track = loadSampleTrack();
+        int initialCount = track.i();
+        Location originalPoint = track.f3238c.get(15);
+        double originalLat = originalPoint.getLatitude();
+        double originalLon = originalPoint.getLongitude();
+
+        double newLat = originalLat + 0.005;
+        double newLon = originalLon - 0.005;
+
+        boolean success = track.movePointAt(15, newLat, newLon);
+        assertTrue("movePointAt must succeed", success);
+        assertEquals(initialCount, track.i());
+
+        Location updatedPoint = track.f3238c.get(15);
+        assertEquals(newLat, updatedPoint.getLatitude(), 0.000001);
+        assertEquals(newLon, updatedPoint.getLongitude(), 0.000001);
+
+        // Verify segment LatLong list is in sync
+        org.mapsforge.core.model.LatLong updatedLatLong = track.f3236a.get(0).f3122a.get(15);
+        assertEquals(newLat, updatedLatLong.latitude, 0.000001);
+        assertEquals(newLon, updatedLatLong.longitude, 0.000001);
+    }
+
+    @Test
+    public void testTrackEditPointsLayerRenderingAndSelection() throws Exception {
+        x3 track = loadSampleTrack();
+        c2.TrackEditPointsLayer pointsLayer = new c2.TrackEditPointsLayer(track);
+        org.mapsforge.map.model.DisplayModel displayModel = new org.mapsforge.map.model.DisplayModel();
+        pointsLayer.setDisplayModel(displayModel);
+
+        assertEquals(-1, pointsLayer.getSelectedPointIndex());
+        pointsLayer.setSelectedPointIndex(20);
+        assertEquals(20, pointsLayer.getSelectedPointIndex());
+
+        // Test drawing canvas
+        int width = 800;
+        int height = 600;
+        byte zoom = 16;
+        org.mapsforge.core.graphics.GraphicFactory factory = AndroidGraphicFactory.INSTANCE;
+        org.mapsforge.core.graphics.Bitmap mfBitmap = factory.createBitmap(width, height);
+        android.graphics.Bitmap androidBitmap = AndroidGraphicFactory.getBitmap(mfBitmap);
+        androidBitmap.eraseColor(android.graphics.Color.WHITE);
+
+        org.mapsforge.core.graphics.Canvas canvas = factory.createCanvas();
+        canvas.setBitmap(mfBitmap);
+
+        double centerLat = track.f3238c.get(20).getLatitude();
+        double centerLon = track.f3238c.get(20).getLongitude();
+        org.mapsforge.core.model.BoundingBox bbox = new org.mapsforge.core.model.BoundingBox(
+                centerLat - 0.01, centerLon - 0.01, centerLat + 0.01, centerLon + 0.01);
+
+        long mapSize = org.mapsforge.core.util.MercatorProjection.getMapSize(zoom, displayModel.getTileSize());
+        double pixelCenterX = org.mapsforge.core.util.MercatorProjection.longitudeToPixelX(centerLon, mapSize);
+        double pixelCenterY = org.mapsforge.core.util.MercatorProjection.latitudeToPixelY(centerLat, mapSize);
+        org.mapsforge.core.model.Point topLeft = new org.mapsforge.core.model.Point(pixelCenterX - (width / 2.0), pixelCenterY - (height / 2.0));
+
+        // Activate edit mode and draw
+        MainActivity.trackEditMode = MainActivity.TRACK_EDIT_MODE_MOVE_POINT;
+        pointsLayer.draw(bbox, zoom, canvas, topLeft, null);
+
+        int nonWhitePixels = 0;
+        for (int y = 0; y < height; y += 4) {
+            for (int x = 0; x < width; x += 4) {
+                if (androidBitmap.getPixel(x, y) != android.graphics.Color.WHITE) {
+                    nonWhitePixels++;
+                }
+            }
+        }
+        assertTrue("Points layer should draw visible circular vertices", nonWhitePixels > 10);
+        MainActivity.trackEditMode = MainActivity.TRACK_EDIT_MODE_NONE;
+    }
+
+    @Test
+    public void testMovePointFlowInMainActivity() throws Exception {
+        x3 track = loadSampleTrack();
+        AgpsApplication.f3574q = track;
+
+        org.robolectric.android.controller.ActivityController<MainActivity> controller =
+                org.robolectric.Robolectric.buildActivity(MainActivity.class).create().start().resume();
+        MainActivity activity = controller.get();
+
+        // 1. Enter Move Point Mode
+        MainActivity.trackEditMode = MainActivity.TRACK_EDIT_MODE_MOVE_POINT;
+        activity.showTrackEditPointsLayer();
+        assertNotNull(MainActivity.trackEditPointsLayer);
+
+        // 2. Select point to move
+        Location pointToMove = track.f3238c.get(5);
+        activity.handleTrackEditPoint(5, pointToMove);
+        assertEquals(5, MainActivity.trackEditPendingMoveIndex);
+        assertEquals(5, MainActivity.trackEditPointsLayer.getSelectedPointIndex());
+
+        // 3. User taps map at new position
+        double newTargetLat = pointToMove.getLatitude() + 0.002;
+        double newTargetLon = pointToMove.getLongitude() + 0.002;
+        android.app.AlertDialog moveDialog = activity.handleTrackMoveTargetPoint(5, newTargetLat, newTargetLon);
+        assertNotNull(moveDialog);
+        assertTrue(moveDialog.isShowing());
+
+        // Confirm move
+        moveDialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+
+        assertEquals(MainActivity.TRACK_EDIT_MODE_NONE, MainActivity.trackEditMode);
+        assertEquals(newTargetLat, track.f3238c.get(5).getLatitude(), 0.000001);
+        assertEquals(newTargetLon, track.f3238c.get(5).getLongitude(), 0.000001);
+
+        controller.pause().stop().destroy();
+    }
+
+    @Test
     public void testVisualRenderTrackBeforeAndAfterEdit() throws Exception {
         x3 track = loadSampleTrack();
         int initialPointCount = track.i();
