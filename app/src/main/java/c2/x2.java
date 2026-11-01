@@ -254,14 +254,26 @@ public class x2 extends TileRendererLayer {
                     i10++;
                 }
                 Location location5 = AgpsApplication.f3574q.f3238c.get(i9);
-                Intent intent = new Intent(this.A, (Class<?>) MainActivity.class);
-                intent.setAction("POI_ON_TRACK");
-                intent.putExtra("LATIT", location5.getLatitude());
-                intent.putExtra("LONGIT", location5.getLongitude());
-                intent.putExtra("ALTIT", location5.getAltitude());
-                MainActivity.f3619g1 = false;
-                v2.e("GPS-I", "-->LocalBroadcast NEW_POI_ON_TRACK_Loaded");
-                LocalBroadcastManager.getInstance(this.A).sendBroadcast(intent);
+                if (MainActivity.trackEditMode != 0) {
+                    Intent trackEditIntent = new Intent(this.A, (Class<?>) MainActivity.class);
+                    trackEditIntent.setAction("TRACK_EDIT_POINT_SELECTED");
+                    trackEditIntent.putExtra("POINT_INDEX", i9);
+                    trackEditIntent.putExtra("LATIT", location5.getLatitude());
+                    trackEditIntent.putExtra("LONGIT", location5.getLongitude());
+                    trackEditIntent.putExtra("ALTIT", location5.getAltitude());
+                    MainActivity.f3619g1 = false;
+                    v2.e("GPS-I", "-->LocalBroadcast TRACK_EDIT_POINT_SELECTED idx=" + i9);
+                    LocalBroadcastManager.getInstance(this.A).sendBroadcast(trackEditIntent);
+                } else {
+                    Intent intent = new Intent(this.A, (Class<?>) MainActivity.class);
+                    intent.setAction("POI_ON_TRACK");
+                    intent.putExtra("LATIT", location5.getLatitude());
+                    intent.putExtra("LONGIT", location5.getLongitude());
+                    intent.putExtra("ALTIT", location5.getAltitude());
+                    MainActivity.f3619g1 = false;
+                    v2.e("GPS-I", "-->LocalBroadcast NEW_POI_ON_TRACK_Loaded");
+                    LocalBroadcastManager.getInstance(this.A).sendBroadcast(intent);
+                }
             }
         } else {
             Intent intent2 = new Intent(this.A, (Class<?>) MainActivity.class);

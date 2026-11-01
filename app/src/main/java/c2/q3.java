@@ -341,4 +341,39 @@ public class q3 {
         sVar.f3161j = d10;
         sVar.f3162k = d9;
     }
+
+    /**
+     * Resynchronizes the Mapsforge LatLong list (f3122a) with the Location list (f3123b).
+     */
+    public void syncLatLongs() {
+        this.f3122a.clear();
+        for (Location location : this.f3123b) {
+            this.f3122a.add(new org.mapsforge.core.model.LatLong(location.getLatitude(), location.getLongitude()));
+        }
+    }
+
+    /**
+     * Removes a range of points [fromIndex, toIndex] inclusive from this segment.
+     */
+    public boolean removePointRange(int fromIndex, int toIndex) {
+        if (fromIndex < 0 || toIndex >= this.f3123b.size() || fromIndex > toIndex) {
+            return false;
+        }
+        for (int i = toIndex; i >= fromIndex; i--) {
+            this.f3123b.remove(i);
+        }
+        syncLatLongs();
+        return true;
+    }
+
+    /**
+     * Reverses the order of points in this segment and recalculates timestamps if appropriate.
+     */
+    public void reverseSegment() {
+        if (this.f3123b.size() <= 1) {
+            return;
+        }
+        java.util.Collections.reverse(this.f3123b);
+        syncLatLongs();
+    }
 }
