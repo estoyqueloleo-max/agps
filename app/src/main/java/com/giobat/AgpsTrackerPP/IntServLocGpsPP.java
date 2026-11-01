@@ -518,17 +518,25 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
         }
 
         boolean onRoute = true;
+        int trackPoints = 0;
+        double minDistance = Double.MAX_VALUE;
         if (isFollowingReturn && AgpsApplication.f3575r != null) {
             x3 recordedTrack = AgpsApplication.f3575r;
+            trackPoints = recordedTrack.i();
             if (recordedTrack.i() > 1 && MainActivity.f3613a1 != null) {
                 onRoute = new i3(30.0d, MainActivity.F1, MainActivity.G1).a(recordedTrack, MainActivity.f3613a1);
+                minDistance = calculateMinDistance(recordedTrack, MainActivity.f3613a1);
             }
         } else if (isFollowingLoaded && AgpsApplication.f3574q != null) {
             x3 loadedTrack = AgpsApplication.f3574q;
+            trackPoints = loadedTrack.i();
             if (loadedTrack.i() > 1 && MainActivity.f3613a1 != null) {
                 onRoute = new i3(30.0d).a(loadedTrack, MainActivity.f3613a1);
+                minDistance = calculateMinDistance(loadedTrack, MainActivity.f3613a1);
             }
         }
+
+        v2.e("GPS-Audio", "checkDeviation: loaded=" + isFollowingLoaded + " return=" + isFollowingReturn + " points=" + trackPoints + " onRoute=" + onRoute + " minDist=" + String.format(java.util.Locale.US, "%.1fm", minDistance) + " hasPos=" + (MainActivity.f3613a1 != null));
 
         if (onRoute) {
             if (this.consecutiveOffRouteReadings > 0) {
@@ -543,6 +551,24 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
                 triggerOffRouteAlarm();
             }
         }
+    }
+
+    private double calculateMinDistance(x3 track, Location pos) {
+        double min = Double.MAX_VALUE;
+        if (track == null || track.f3236a == null || pos == null) return min;
+        for (c2.q3 seg : track.f3236a) {
+            if (seg != null && seg.f3123b != null) {
+                for (Location pnt : seg.f3123b) {
+                    if (pnt != null) {
+                        float dist = pnt.distanceTo(pos);
+                        if (dist < min) {
+                            min = dist;
+                        }
+                    }
+                }
+            }
+        }
+        return min;
     }
 
     private void resetOffRouteAlarm() {
