@@ -42,16 +42,21 @@ def getGitVersionName = { ->
         return envVersion.trim().replaceFirst("^v", "")
     }
     try {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'describe', '--tags', '--always'
-            standardOutput = stdout
+        def sout = new ByteArrayOutputStream()
+        def serr = new ByteArrayOutputStream()
+        def proc = ["git", "describe", "--tags", "--always"].execute([], rootProject.projectDir)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitFor()
+        if (proc.exitValue() == 0) {
+            def desc = sout.toString().trim()
+            if (desc.startsWith("v")) {
+                desc = desc.substring(1)
+            }
+            if (!desc.isEmpty()) {
+                return desc
+            }
         }
-        def desc = stdout.toString().trim()
-        if (desc.startsWith("v")) {
-            desc = desc.substring(1)
-        }
-        return desc.isEmpty() ? "0.2.0" : desc
+        return "0.2.0"
     } catch (Exception ignored) {
         return "0.2.0"
     }
@@ -63,13 +68,18 @@ def getGitVersionCode = { ->
         return envCode.toInteger()
     }
     try {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-list', '--count', 'HEAD'
-            standardOutput = stdout
+        def sout = new ByteArrayOutputStream()
+        def serr = new ByteArrayOutputStream()
+        def proc = ["git", "rev-list", "--count", "HEAD"].execute([], rootProject.projectDir)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitFor()
+        if (proc.exitValue() == 0) {
+            def count = sout.toString().trim()
+            if (count.isInteger()) {
+                return count.toInteger() + 100
+            }
         }
-        def count = stdout.toString().trim()
-        return count.isInteger() ? (count.toInteger() + 100) : 101
+        return 101
     } catch (Exception ignored) {
         return 101
     }
