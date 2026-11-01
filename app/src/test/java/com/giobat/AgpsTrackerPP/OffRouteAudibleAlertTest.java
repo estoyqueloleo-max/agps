@@ -239,4 +239,28 @@ public class OffRouteAudibleAlertTest {
         Assert.assertTrue(AgpsApplication.isFollowPathAlarmTriggered);
         Assert.assertEquals(1, service.offRouteAlarmBeepCount);
     }
+
+    @Test
+    public void testPointNearTrackCalculationCordobaVersusMadrid() {
+        // Track in Cordoba (approx 37.875, -4.781)
+        x3 cordobaTrack = createReferenceTrack(37.8752, -4.7817);
+
+        // Position in Madrid / Rivas (approx 40.3649, -3.4823)
+        Location madridLocation = new Location("GPS");
+        madridLocation.setLatitude(40.3649);
+        madridLocation.setLongitude(-3.4823);
+
+        c2.i3 pointNearTrack = new c2.i3(30.0d);
+        boolean onRoute = pointNearTrack.a(cordobaTrack, madridLocation);
+
+        Assert.assertFalse("Point in Madrid must NOT be considered on route for a track in Cordoba", onRoute);
+
+        // Position directly on the track in Cordoba
+        Location cordobaLocation = new Location("GPS");
+        cordobaLocation.setLatitude(37.8752);
+        cordobaLocation.setLongitude(-4.7817);
+
+        boolean onRouteCordoba = pointNearTrack.a(cordobaTrack, cordobaLocation);
+        Assert.assertTrue("Point on Cordoba track must be considered on route", onRouteCordoba);
+    }
 }

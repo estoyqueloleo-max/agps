@@ -536,6 +536,29 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
             }
         }
 
+        Location currentGpsLocation = MainActivity.f3613a1;
+        if (currentGpsLocation != null) {
+            v2.e("GPS-Audio", "Current GPS: Lat=" + currentGpsLocation.getLatitude()
+                    + " Lon=" + currentGpsLocation.getLongitude()
+                    + " Acc=" + currentGpsLocation.getAccuracy() + "m"
+                    + " Provider=" + currentGpsLocation.getProvider());
+        } else {
+            v2.e("GPS-Audio", "Current GPS: NULL (no fix)");
+        }
+
+        if (isFollowingLoaded && AgpsApplication.f3574q != null) {
+            x3 loadedTrack = AgpsApplication.f3574q;
+            int segCount = (loadedTrack.f3236a != null) ? loadedTrack.f3236a.size() : 0;
+            String trackName = (loadedTrack.f3242g != null) ? loadedTrack.f3242g : "unnamed";
+            v2.e("GPS-Audio", "Loaded Track: '" + trackName + "' segments=" + segCount + " totalPoints=" + loadedTrack.i());
+            if (segCount > 0 && loadedTrack.f3236a.get(0).f3123b != null && !loadedTrack.f3236a.get(0).f3123b.isEmpty()) {
+                Location firstPt = loadedTrack.f3236a.get(0).f3123b.get(0);
+                Location lastPt = loadedTrack.f3236a.get(0).f3123b.get(loadedTrack.f3236a.get(0).f3123b.size() - 1);
+                v2.e("GPS-Audio", "Track first pt: Lat=" + firstPt.getLatitude() + " Lon=" + firstPt.getLongitude()
+                        + " | last pt: Lat=" + lastPt.getLatitude() + " Lon=" + lastPt.getLongitude());
+            }
+        }
+
         v2.e("GPS-Audio", "checkDeviation: loaded=" + isFollowingLoaded + " return=" + isFollowingReturn + " points=" + trackPoints + " onRoute=" + onRoute + " minDist=" + String.format(java.util.Locale.US, "%.1fm", minDistance) + " hasPos=" + (MainActivity.f3613a1 != null));
 
         if (onRoute) {
