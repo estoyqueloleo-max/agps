@@ -8,9 +8,11 @@ on:
       - 'v*'
     branches:
       - master
+      - develop
   pull_request:
     branches:
       - master
+      - develop
   workflow_dispatch:
 
 permissions:
@@ -24,6 +26,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4

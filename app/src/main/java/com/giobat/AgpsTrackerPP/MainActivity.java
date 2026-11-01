@@ -512,7 +512,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 mainActivity2.P = 2;
             }
             if (mainActivity2.P == 2) {
-                v2.e("GPS-M", "AGPS-Tracker++ Version :: 1.8.98");
+                v2.e("GPS-M", "AGPS-Tracker++ Version :: " + BuildConfig.VERSION_NAME);
                 try {
                     File[] fileArrListFiles = MainActivity.X(MainActivity.Z0.getApplicationContext(), "Logs", 7).listFiles();
                     long jCurrentTimeMillis = System.currentTimeMillis();
@@ -3384,7 +3384,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         x3 x3Var;
         if (menuItem.getItemId() == R.id.version) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            c0.a(this, R.string.app_title, builder.setMessage(getApplication().getResources().getString(R.string.app_version) + ": 1.8.98")).setPositiveButton(R.string.ok, new l1(this));
+            c0.a(this, R.string.app_title, builder.setMessage(getApplication().getResources().getString(R.string.app_version) + ": " + BuildConfig.VERSION_NAME)).setPositiveButton(R.string.ok, new l1(this));
             builder.create();
             builder.show();
             return true;
@@ -3528,7 +3528,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         }
         if (menuItem.getItemId() == R.id.support) {
-            StringBuilder sbA = androidx.activity.result.d.a(" ", getApplication().getResources().getString(R.string.app_version) + " 1.8.98, ", "  ");
+            StringBuilder sbA = androidx.activity.result.d.a(" ", getApplication().getResources().getString(R.string.app_version) + " " + BuildConfig.VERSION_NAME + ", ", "  ");
             sbA.append(Build.MANUFACTURER);
             sbA.append("-");
             sbA.append(Build.MODEL);
