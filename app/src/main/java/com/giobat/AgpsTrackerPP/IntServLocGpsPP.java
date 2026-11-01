@@ -655,6 +655,9 @@ public class IntServLocGpsPP extends Service implements SensorEventListener {
     public int onStartCommand(Intent intent, int i7, int i8) {
         v2.e("GPS-S", "Start service IntServLocGpsPP");
         A = true;
+        if (this.offRouteAudioPlayer == null) {
+            this.offRouteAudioPlayer = new OffRouteAudioPlayer(this);
+        }
         Intent intent2 = new Intent(this, (Class<?>) MainActivity.class);
         intent2.setFlags(603979776);
         intent2.putExtra("STARTED_FROM_NOTIF", true);
