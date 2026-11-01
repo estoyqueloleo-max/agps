@@ -76,12 +76,12 @@ def getGitVersionCode = { ->
         if (proc.exitValue() == 0) {
             def count = sout.toString().trim()
             if (count.isInteger()) {
-                return count.toInteger() + 100
+                return count.toInteger() + 200
             }
         }
-        return 101
+        return 201
     } catch (Exception ignored) {
-        return 101
+        return 201
     }
 }
 
