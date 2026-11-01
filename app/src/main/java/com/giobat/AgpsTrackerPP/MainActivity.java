@@ -2326,10 +2326,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AgpsApplication.f3571n = false;
         AgpsApplication.isFollowReturnTrackActive = false;
         AgpsApplication.resetFollowTrackProgress();
-        // Note: Off-route audible alert is self-contained inside IntServLocGpsPP via OffRouteAudioPlayer.
-        // We ensure audio stream volume (STREAM_MUSIC) is active and audible.
+        // Ensure alarm and music audio streams have audible volume
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (audioManager != null) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_SHOW_UI);
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI);
         }
     }
@@ -2348,9 +2348,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AgpsApplication.resetFollowTrackProgress();
         F1 = AgpsApplication.f3575r.f3236a.size();
         G1 = AgpsApplication.f3575r.d().f3122a.size();
-        // Note: Off-route audible alert is self-contained inside IntServLocGpsPP via OffRouteAudioPlayer.
+        // Ensure alarm and music audio streams have audible volume
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (audioManager != null) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_SHOW_UI);
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI);
         }
     }
