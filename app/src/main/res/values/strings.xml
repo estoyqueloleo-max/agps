@@ -150,7 +150,11 @@
     <string name="file_exists">File already exists!</string>
     <string name="followPathAlarm">Off route</string>
     <string name="follow_path_remaining">Rem: %s</string>
+    <string name="follow_path_slope">Slope: %s (100m)</string>
     <string name="follow_path_destination_reached">Reached!</string>
+    <string name="peak_prev">Prev Peak</string>
+    <string name="peak_summit">Summit</string>
+    <string name="peak_next">Next Peak</string>
     <string name="follow_path_monitor_title">Path Monitor</string>
     <string name="ftp_downl_warning1">File Download</string>
     <string name="general_info">General Information</string>

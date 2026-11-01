@@ -213,26 +213,18 @@ public class x2 extends TileRendererLayer {
             x3 x3Var = y3Var.f3274i;
             x3Var.c();
             if (MainActivity.Y0.f3273h && x3Var.i() > 1) {
-                double dDistanceTo2 = 1.0E7d;
-                int i8 = 0;
-                for (Location location2 : x3Var.f3238c) {
-                    if (location2.distanceTo(location) < dDistanceTo2) {
-                        dDistanceTo2 = location2.distanceTo(location);
-                        i7 = i8;
+                double minDistance = Double.MAX_VALUE;
+                int closestIndex = 0;
+                int currentIndex = 0;
+                for (Location trackPoint : x3Var.f3238c) {
+                    double dist = trackPoint.distanceTo(location);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestIndex = currentIndex;
                     }
-                    i8++;
+                    currentIndex++;
                 }
-                Location location3 = x3Var.f3238c.get(i7);
-                double latitude = location3.getLatitude();
-                double longitude = location3.getLongitude();
-                double altitude = location3.getAltitude();
-                double d8 = x3Var.f3239d[i7] / 1000.0d;
-                float fBearingTo = i7 < x3Var.f3238c.size() - 1 ? location3.bearingTo(x3Var.f3238c.get(i7 + 1)) : 0.0f;
-                MainActivity.Y0.f3272g.b(true);
-                MainActivity.Y0.f3272g.c(true, Double.valueOf(latitude), longitude, altitude, d8, fBearingTo);
-                y3 y3Var2 = MainActivity.Y0;
-                y3Var2.f3266a = i7;
-                y3Var2.a();
+                MainActivity.Y0.selectPointIndex(closestIndex, false);
             }
             return true;
         }

@@ -110,6 +110,14 @@ public class RivasTrackRealWorldTest {
         x3.RemainingDistanceResult resEnd = track.calculateRemainingDistance(userAtEnd, false, 2960);
         assertTrue("At end of track after following, destination SHOULD be reached", resEnd.isDestinationReached);
         assertTrue("Remaining distance at end should be near 0", resEnd.remainingDistanceMeters < 30.0d);
+
+        // Verify slope calculation on real-world GPX data
+        double slopeAtStart = track.calculateAheadSlopePercentage(0, false, 100.0d);
+        assertFalse("Slope at start must be finite", Double.isNaN(slopeAtStart) || Double.isInfinite(slopeAtStart));
+        double slopeMid = resMid.slopePercentage;
+        assertFalse("Slope midway must be finite", Double.isNaN(slopeMid) || Double.isInfinite(slopeMid));
+        assertTrue("Slope percentage on Rivas terrain should be within realistic bounds (-30% to +30%)",
+                slopeMid >= -30.0d && slopeMid <= 30.0d);
     }
 
     @Test
@@ -188,5 +196,129 @@ public class RivasTrackRealWorldTest {
         graphView.layout(0, 0, 400, 200);
         graphView.draw(canvas);
         assertNotNull("Canvas drawing should complete successfully", bitmap);
+    }
+
+    @Test
+    public void testPeakDetectionAndNavigationFromGpx() throws Exception {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("rivas_track.gpx");
+        assertNotNull("rivas_track.gpx must exist in test resources", is);
+
+        r parser = new r(context);
+        boolean parseOk = parser.a(is, context);
+        assertTrue("GPX parse must succeed", parseOk);
+
+        x3 track = new x3(2);
+        boolean loadOk = track.a("Lagunas de Rivas", parser);
+        assertTrue("Track load must succeed", loadOk);
+
+        // 1. Detect Summit (absolute highest elevation point)
+        int summitIndex = track.findSummitIndex();
+        assertTrue("Summit index must be within track bounds", summitIndex >= 0 && summitIndex < track.i());
+        double summitAltitude = track.f3238c.get(summitIndex).getAltitude();
+        for (Location loc : track.f3238c) {
+            assertTrue("No point can be higher than summit", loc.getAltitude() <= summitAltitude);
+        }
+
+        // 2. Detect Local Peaks with prominence
+        java.util.ArrayList<x3.PeakInfo> peaks = track.findPeakIndices(8.0d, 200.0d);
+        assertNotNull("Peaks list should not be null", peaks);
+        assertFalse("Real-world hilly track should have at least 1 peak/summit", peaks.isEmpty());
+
+        // Verify summit is among the peaks
+        boolean hasSummit = false;
+        for (x3.PeakInfo peak : peaks) {
+            if (peak.isSummit) {
+                hasSummit = true;
+                assertEquals(summitIndex, peak.pointIndex);
+                assertEquals(summitAltitude, peak.altitudeMeters, 0.001d);
+            }
+        }
+        assertTrue("Peaks list must contain the summit", hasSummit);
+
+        // 3. Test navigation controls in elevation profile (y3)
+        android.view.LayoutInflater inflater = android.view.LayoutInflater.from(context);
+        android.view.View graphWindowView = inflater.inflate(com.giobat.AgpsTrackerPP.R.layout.ii_graph_window, null);
+        c2.y3 elevationProfile = new c2.y3(context, graphWindowView, track, "Lagunas de Rivas", true);
+
+        // Test Summit jump
+        elevationProfile.navigateToSummit();
+        assertEquals(summitIndex, elevationProfile.f3266a);
+
+        // Test Next Peak step-by-step
+        elevationProfile.navigateToNextPeak();
+        assertTrue("Navigating to next peak should select a valid waypoint",
+                elevationProfile.f3266a >= 0 && elevationProfile.f3266a < track.i());
+
+        // Test Prev Peak step-by-step
+        elevationProfile.navigateToPrevPeak();
+        assertTrue("Navigating to prev peak should select a valid waypoint",
+                elevationProfile.f3266a >= 0 && elevationProfile.f3266a < track.i());
+    }
+
+    @Test
+    public void testInteractiveMapScrubbingSyncsWithElevationProfile() throws Exception {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("rivas_track.gpx");
+        assertNotNull("rivas_track.gpx must exist in test resources", is);
+
+        r parser = new r(context);
+        boolean parseOk = parser.a(is, context);
+        assertTrue("GPX parse must succeed", parseOk);
+
+        x3 track = new x3(2);
+        boolean loadOk = track.a("Lagunas de Rivas", parser);
+        assertTrue("Track load must succeed", loadOk);
+
+        android.view.LayoutInflater inflater = android.view.LayoutInflater.from(context);
+        android.view.View graphWindowView = inflater.inflate(com.giobat.AgpsTrackerPP.R.layout.ii_graph_window, null);
+        c2.y3 elevationProfile = new c2.y3(context, graphWindowView, track, "Lagunas de Rivas", true);
+        MainActivity.Y0 = elevationProfile;
+        MainActivity.Y0.f3273h = true;
+
+        // Simulate touching different locations on the map along the route
+        // 1. Touch near start (point 10)
+        Location touchStart = track.f3238c.get(10);
+        org.mapsforge.core.model.LatLong latLongStart = new org.mapsforge.core.model.LatLong(touchStart.getLatitude(), touchStart.getLongitude());
+
+        // Find nearest point along track as onTap does
+        double minDistance = Double.MAX_VALUE;
+        int closestIndex = 0;
+        int idx = 0;
+        for (Location pt : track.f3238c) {
+            double d = pt.distanceTo(touchStart);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIndex = idx;
+            }
+            idx++;
+        }
+        assertEquals(10, closestIndex);
+        elevationProfile.selectPointIndex(closestIndex, false);
+        assertEquals(10, elevationProfile.f3266a);
+
+        // 2. Touch midway (point 1500)
+        Location touchMid = track.f3238c.get(1500);
+        minDistance = Double.MAX_VALUE;
+        closestIndex = 0;
+        idx = 0;
+        for (Location pt : track.f3238c) {
+            double d = pt.distanceTo(touchMid);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIndex = idx;
+            }
+            idx++;
+        }
+        assertEquals(1500, closestIndex);
+        elevationProfile.selectPointIndex(closestIndex, false);
+        assertEquals(1500, elevationProfile.f3266a);
+
+        // Verify cursor data point in elevation profile synchronized
+        assertNotNull(elevationProfile.f3270e);
+        assertTrue(elevationProfile.f3270e.length > 0);
+        assertNotNull(elevationProfile.f3270e[0]);
+        double expectedDistanceKm = MainActivity.U(track.f3239d[1500] / 1000.0d);
+        double expectedAltitude = MainActivity.W(track.f3238c.get(1500).getAltitude());
+        assertEquals(expectedDistanceKm, elevationProfile.f3270e[0].f17269h, 0.01d);
+        assertEquals(expectedAltitude, elevationProfile.f3270e[0].f17270i, 0.01d);
     }
 }

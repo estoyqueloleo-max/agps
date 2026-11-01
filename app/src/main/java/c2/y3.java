@@ -170,6 +170,8 @@ public class y3 {
         graphView.setVisibility(0);
         this.f3275j = 1;
         this.f3276k = context.getResources();
+        this.f3270e = new p5.b[]{new p5.b(0.0d, 0.0d)};
+        this.f3267b = new p5.d<>(this.f3270e);
     }
 
     public void a() {
@@ -406,6 +408,104 @@ public class y3 {
         return true;
     }
 
+    public java.util.ArrayList<x3.PeakInfo> detectedPeaks = new java.util.ArrayList<>();
+    public int currentPeakIndex = -1;
+
+    public void selectPointIndex(int pointIndex) {
+        selectPointIndex(pointIndex, true);
+    }
+
+    public void selectPointIndex(int pointIndex, boolean centerMap) {
+        if (this.f3274i == null || this.f3274i.f3238c == null || pointIndex < 0 || pointIndex >= this.f3274i.f3238c.size()) {
+            return;
+        }
+        this.f3266a = pointIndex;
+        Location pointLoc = this.f3274i.f3238c.get(pointIndex);
+        double latitude = pointLoc.getLatitude();
+        double longitude = pointLoc.getLongitude();
+        double altitude = pointLoc.getAltitude();
+        double distanceKm = (this.f3274i.f3239d != null && pointIndex < this.f3274i.f3239d.length)
+                ? this.f3274i.f3239d[pointIndex] / 1000.0d : 0.0d;
+
+        float bearing = 0.0f;
+        if (pointIndex < this.f3274i.f3238c.size() - 1) {
+            bearing = pointLoc.bearingTo(this.f3274i.f3238c.get(pointIndex + 1));
+        }
+
+        if (this.f3272g != null) {
+            this.f3272g.c(true, Double.valueOf(latitude), longitude, altitude, distanceKm, bearing);
+            this.f3272g.b(true);
+        }
+
+        if (this.f3267b != null && this.f3270e != null && this.f3270e.length > 0) {
+            this.f3270e[0] = new p5.b(MainActivity.U(distanceKm), MainActivity.W(altitude));
+            this.f3267b.k(this.f3270e);
+        }
+
+        // Center map on the selected waypoint if requested
+        if (centerMap) {
+            try {
+                if (MainActivity.M0 != null) {
+                    MainActivity.M0.setCenter(new org.mapsforge.core.model.LatLong(latitude, longitude));
+                }
+            } catch (Exception centerException) {
+                v2.e("GPS-M", "Map center on peak error: " + centerException.getMessage());
+            }
+        }
+    }
+
+    public void navigateToNextPeak() {
+        if (this.detectedPeaks == null || this.detectedPeaks.isEmpty()) {
+            if (this.f3274i != null) {
+                this.detectedPeaks = this.f3274i.findPeakIndices(8.0d, 200.0d);
+            }
+        }
+        if (this.detectedPeaks == null || this.detectedPeaks.isEmpty()) {
+            return;
+        }
+        this.currentPeakIndex++;
+        if (this.currentPeakIndex >= this.detectedPeaks.size()) {
+            this.currentPeakIndex = 0; // Wrap around to first peak
+        }
+        x3.PeakInfo peak = this.detectedPeaks.get(this.currentPeakIndex);
+        selectPointIndex(peak.pointIndex);
+    }
+
+    public void navigateToPrevPeak() {
+        if (this.detectedPeaks == null || this.detectedPeaks.isEmpty()) {
+            if (this.f3274i != null) {
+                this.detectedPeaks = this.f3274i.findPeakIndices(8.0d, 200.0d);
+            }
+        }
+        if (this.detectedPeaks == null || this.detectedPeaks.isEmpty()) {
+            return;
+        }
+        this.currentPeakIndex--;
+        if (this.currentPeakIndex < 0) {
+            this.currentPeakIndex = this.detectedPeaks.size() - 1; // Wrap to last peak
+        }
+        x3.PeakInfo peak = this.detectedPeaks.get(this.currentPeakIndex);
+        selectPointIndex(peak.pointIndex);
+    }
+
+    public void navigateToSummit() {
+        if (this.f3274i == null) {
+            return;
+        }
+        int summitIndex = this.f3274i.findSummitIndex();
+        if (summitIndex >= 0) {
+            if (this.detectedPeaks != null) {
+                for (int i = 0; i < this.detectedPeaks.size(); i++) {
+                    if (this.detectedPeaks.get(i).pointIndex == summitIndex) {
+                        this.currentPeakIndex = i;
+                        break;
+                    }
+                }
+            }
+            selectPointIndex(summitIndex);
+        }
+    }
+
     public void c(p5.c cVar) {
         v2.e("GPS-M", "OnDataPointListener");
         double x = !AgpsApplication.f3567i ? cVar.getX() / 0.621371d : cVar.getX();
@@ -415,18 +515,7 @@ public class y3 {
         for (int i7 = 0; i7 < this.f3275j; i7++) {
             x3 x3Var = this.f3274i;
             if (x <= x3Var.f3239d[i7] / 1000.0d) {
-                this.f3266a = i7;
-                double latitude = x3Var.f3238c.get(i7).getLatitude();
-                double longitude = this.f3274i.f3238c.get(this.f3266a).getLongitude();
-                double altitude = this.f3274i.f3238c.get(this.f3266a).getAltitude();
-                x3 x3Var2 = this.f3274i;
-                double[] dArr = x3Var2.f3239d;
-                int i8 = this.f3266a;
-                double d8 = dArr[i8] / 1000.0d;
-                this.f3272g.c(true, Double.valueOf(latitude), longitude, altitude, d8, i8 < this.f3275j - 1 ? x3Var2.f3238c.get(i8).bearingTo(this.f3274i.f3238c.get(this.f3266a + 1)) : 0.0f);
-                this.f3272g.b(true);
-                this.f3270e[0] = new p5.b(MainActivity.U(d8), MainActivity.W(altitude));
-                this.f3267b.k(this.f3270e);
+                selectPointIndex(i7);
                 return;
             }
         }

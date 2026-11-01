@@ -33,13 +33,49 @@
         android:onClick="onClick_showWalking"
         android:layout_toEndOf="@+id/graph_off"
         style="?android:attr/borderlessButtonStyle"/>
+    <LinearLayout
+        android:id="@+id/peak_nav_layout"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginRight="4dp"
+        android:gravity="center_vertical"
+        android:layout_alignParentEnd="true">
+        <Button
+            android:id="@+id/btn_peak_prev"
+            android:background="@drawable/material_ic_keyboard_arrow_left_black_24dp"
+            android:padding="2dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:onClick="onClick_peakPrev"
+            android:contentDescription="@string/peak_prev"
+            style="?android:attr/borderlessButtonStyle"/>
+        <Button
+            android:id="@+id/btn_peak_summit"
+            android:background="@drawable/ic_arrow_upward_black_24dp"
+            android:padding="2dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:onClick="onClick_peakSummit"
+            android:contentDescription="@string/peak_summit"
+            style="?android:attr/borderlessButtonStyle"/>
+        <Button
+            android:id="@+id/btn_peak_next"
+            android:background="@drawable/material_ic_keyboard_arrow_right_black_24dp"
+            android:padding="2dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:onClick="onClick_peakNext"
+            android:contentDescription="@string/peak_next"
+            style="?android:attr/borderlessButtonStyle"/>
+    </LinearLayout>
     <TextView
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
         android:ellipsize="end"
         android:id="@+id/graph_txt"
-        android:padding="5dp"
+        android:padding="4dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="2dp"
@@ -47,7 +83,8 @@
         android:layout_marginRight="2dp"
         android:layout_marginBottom="1dp"
         android:maxLines="2"
-        android:layout_toEndOf="@+id/walk"/>
+        android:layout_toEndOf="@+id/walk"
+        android:layout_toStartOf="@+id/peak_nav_layout"/>
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph_elevation"
         android:background="@color/PowderBlue"
