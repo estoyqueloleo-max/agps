@@ -36,6 +36,45 @@ if (secretsFile.exists()) {
     secretsFile.withInputStream { sftpProps.load(it) }
 }
 
+def getGitVersionName = { ->
+    def envVersion = System.getenv("VERSION_NAME")
+    if (envVersion != null && !envVersion.trim().isEmpty()) {
+        return envVersion.trim().replaceFirst("^v", "")
+    }
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', '--tags', '--always'
+            standardOutput = stdout
+        }
+        def desc = stdout.toString().trim()
+        if (desc.startsWith("v")) {
+            desc = desc.substring(1)
+        }
+        return desc.isEmpty() ? "0.2.0" : desc
+    } catch (Exception ignored) {
+        return "0.2.0"
+    }
+}
+
+def getGitVersionCode = { ->
+    def envCode = System.getenv("VERSION_CODE")
+    if (envCode != null && envCode.isInteger()) {
+        return envCode.toInteger()
+    }
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-list', '--count', 'HEAD'
+            standardOutput = stdout
+        }
+        def count = stdout.toString().trim()
+        return count.isInteger() ? (count.toInteger() + 100) : 101
+    } catch (Exception ignored) {
+        return 101
+    }
+}
+
 android {
 	namespace "com.giobat.AgpsTrackerPP"
     compileSdkVersion 34
@@ -44,8 +83,8 @@ android {
         applicationId 'com.giobat.AgpsTrackerPP.community'
         minSdkVersion 24
         targetSdkVersion 34
-        versionCode 102
-        versionName "0.2.1"
+        versionCode getGitVersionCode()
+        versionName getGitVersionName()
         multiDexEnabled true
 
         def sftpHost = System.getenv("SFTP_HOST") ?: sftpProps.getProperty("SFTP_HOST", "agps-tracker.cloud")
