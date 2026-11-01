@@ -452,7 +452,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             x3 x3Var;
             MapView mapView;
             MainActivity mainActivity = MainActivity.this;
-            mainActivity.A.postDelayed(mainActivity.O, 1000L);
+            if (mainActivity.A != null) {
+                mainActivity.A.postDelayed(mainActivity.O, 1000L);
+            }
             MainActivity mainActivity2 = MainActivity.this;
             Objects.requireNonNull(mainActivity2);
             mainActivity2.U = System.currentTimeMillis();
@@ -512,7 +514,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 mainActivity2.P = 2;
             }
             if (mainActivity2.P == 2) {
-                v2.e("GPS-M", "AGPS-Tracker++ Version :: 1.8.98");
+                v2.e("GPS-M", "AGPS-Tracker++ Version :: " + BuildConfig.VERSION_NAME);
                 try {
                     File[] fileArrListFiles = MainActivity.X(MainActivity.Z0.getApplicationContext(), "Logs", 7).listFiles();
                     long jCurrentTimeMillis = System.currentTimeMillis();
@@ -700,7 +702,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
             mainActivity2.H0();
-            mainActivity2.z.l(MainActivity.f3613a1);
+            if (mainActivity2.z != null) {
+                mainActivity2.z.l(MainActivity.f3613a1);
+            }
             String str2 = XmlPullParser.NO_NAMESPACE;
             x3 x3Var3 = AgpsApplication.f3575r;
             if (x3Var3 != null && x3Var3.i() > 0) {
@@ -763,7 +767,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 viewFindViewById8.setVisibility(0);
             }
             if (AgpsApplication.f3570l && (x3Var = AgpsApplication.f3574q) != null && x3Var.i() > 1) {
-                AgpsApplication.B = mainActivity2.z.m(AgpsApplication.f3574q);
+                if (mainActivity2.z != null) {
+                    AgpsApplication.B = mainActivity2.z.m(AgpsApplication.f3574q);
+                }
                 AgpsApplication.f3570l = false;
                 MainActivity.isAutoCenterMapOnGps = false;
                 MainActivity.J0 = false;
@@ -771,18 +777,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mainActivity2.f0();
             mainActivity2.updateLavagnaVisibility();
             mainActivity2.G0();
-            View viewFindViewById9 = mainActivity2.findViewById(R.id.follow_path_monitor);
-            if (viewFindViewById9 != null) {
-                viewFindViewById9.setVisibility(8);
-            }
-            View viewWarnings = mainActivity2.findViewById(R.id.follow_path_warnings);
-            if (viewWarnings != null) {
-                viewWarnings.setVisibility(8);
-            }
             boolean isFollowActive = AgpsApplication.m || AgpsApplication.f3571n;
             TextView tvAltitudeLabel = (TextView) mainActivity2.findViewById(R.id.label1);
+            View viewWarnings = mainActivity2.findViewById(R.id.follow_path_warnings);
+            View viewWarningsIcon = mainActivity2.findViewById(R.id.follow_path_alarm_icon);
+            TextView tvWarningsText = (TextView) mainActivity2.findViewById(R.id.follow_path_monitor_text);
             if (!isFollowActive) {
                 AgpsApplication.f3572o = false;
+                if (viewWarnings != null) {
+                    viewWarnings.setVisibility(8);
+                }
                 if (tvAltitudeLabel != null) {
                     tvAltitudeLabel.setText(mainActivity2.getString(R.string.altitude_box) + " [" + MainActivity.y() + "]");
                     tvAltitudeLabel.setTextColor(0xff000000);
@@ -796,7 +800,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         tvAltitudeLabel.setText(alarmMsg + "\n" + altitudeUnitLine);
                         tvAltitudeLabel.setTextColor(0xffd32f2f);
                     }
+                    if (viewWarnings != null) {
+                        viewWarnings.setVisibility(0);
+                    }
+                    if (viewWarningsIcon != null) {
+                        viewWarningsIcon.setVisibility(0);
+                    }
+                    if (tvWarningsText != null) {
+                        tvWarningsText.setText(alarmMsg);
+                    }
                 } else {
+                    if (viewWarnings != null) {
+                        viewWarnings.setVisibility(8);
+                    }
                     x3 activeTrack = AgpsApplication.f3571n ? AgpsApplication.f3575r : AgpsApplication.f3574q;
                     if (activeTrack != null && MainActivity.f3613a1 != null && activeTrack.i() > 0) {
                         boolean isReverseMode = AgpsApplication.f3571n;
@@ -859,31 +875,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             boolean z7 = AgpsApplication.f3566h;
             mainActivity2.D0();
-            if (mainActivity2.z.f3061e.d()) {
-                mainActivity2.f3652n0.setVisibility(0);
-                mainActivity2.f3651m0.setIndeterminate(false);
-                mainActivity2.E0();
-            } else if (SFtpServerFileDialogActivity.A) {
-                mainActivity2.f3652n0.setVisibility(0);
-                mainActivity2.f3651m0.setIndeterminate(false);
-                mainActivity2.Q(mainActivity2, SFtpServerFileDialogActivity.z);
-            } else if (UnzipProgressState.isUnzipping) {
-                mainActivity2.f3652n0.setVisibility(0);
-                mainActivity2.f3651m0.setIndeterminate(true);
-                mainActivity2.I0("unzipping", UnzipProgressState.unzipProgressBytes);
-            } else {
-                mainActivity2.f3652n0.setVisibility(8);
+            if (mainActivity2.f3652n0 != null) {
+                if (mainActivity2.z != null && mainActivity2.z.f3061e != null && mainActivity2.z.f3061e.d()) {
+                    mainActivity2.f3652n0.setVisibility(0);
+                    if (mainActivity2.f3651m0 != null) {
+                        mainActivity2.f3651m0.setIndeterminate(false);
+                    }
+                    mainActivity2.E0();
+                } else if (SFtpServerFileDialogActivity.A) {
+                    mainActivity2.f3652n0.setVisibility(0);
+                    if (mainActivity2.f3651m0 != null) {
+                        mainActivity2.f3651m0.setIndeterminate(false);
+                    }
+                    mainActivity2.Q(mainActivity2, SFtpServerFileDialogActivity.z);
+                } else if (UnzipProgressState.isUnzipping) {
+                    mainActivity2.f3652n0.setVisibility(0);
+                    if (mainActivity2.f3651m0 != null) {
+                        mainActivity2.f3651m0.setIndeterminate(true);
+                    }
+                    mainActivity2.I0("unzipping", UnzipProgressState.unzipProgressBytes);
+                } else {
+                    mainActivity2.f3652n0.setVisibility(8);
+                }
             }
             ProgressBar progressBar2 = (ProgressBar) mainActivity2.findViewById(R.id.lavagna_track_progress_bar);
             Button button2 = (Button) mainActivity2.findViewById(R.id.lavagna_track_elev_profile);
             if (MainActivity.f3614b1) {
-                progressBar2.setVisibility(0);
-                if (mainActivity2.B == 1) {
+                if (progressBar2 != null) {
+                    progressBar2.setVisibility(0);
+                }
+                if (mainActivity2.B == 1 && button2 != null) {
                     button2.setVisibility(4);
                 }
             } else {
-                progressBar2.setVisibility(8);
-                if (mainActivity2.B == 1) {
+                if (progressBar2 != null) {
+                    progressBar2.setVisibility(8);
+                }
+                if (mainActivity2.B == 1 && button2 != null) {
                     button2.setVisibility(0);
                 }
             }
@@ -898,19 +926,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 mainActivity2.j0(b8);
             }
             View viewFindViewById10 = mainActivity2.findViewById(R.id.zoom_buttons);
-            if (MainActivity.f3636x1) {
-                viewFindViewById10.setVisibility(0);
-            } else {
-                viewFindViewById10.setVisibility(8);
+            if (viewFindViewById10 != null) {
+                if (MainActivity.f3636x1) {
+                    viewFindViewById10.setVisibility(0);
+                } else {
+                    viewFindViewById10.setVisibility(8);
+                }
             }
-            if (MainActivity.f3630r1) {
-                mainActivity2.J.setVisibility(0);
-                MainActivity.f3630r1 = false;
-            }
-            if (MainActivity.f3631s1) {
-                mainActivity2.J.setVisibility(8);
-                MainActivity.f3631s1 = false;
-                MainActivity.f3630r1 = false;
+            if (mainActivity2.J != null) {
+                if (MainActivity.f3630r1) {
+                    mainActivity2.J.setVisibility(0);
+                    MainActivity.f3630r1 = false;
+                }
+                if (MainActivity.f3631s1) {
+                    mainActivity2.J.setVisibility(8);
+                    MainActivity.f3631s1 = false;
+                    MainActivity.f3630r1 = false;
+                }
             }
         }
     }
@@ -2296,11 +2328,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AgpsApplication.f3571n = false;
         AgpsApplication.isFollowReturnTrackActive = false;
         AgpsApplication.resetFollowTrackProgress();
-        if (IntServLocGpsPP.I == null) {
-            AudioManager audioManager = (AudioManager) getSystemService("audio");
-            IntServLocGpsPP.I = audioManager;
-            audioManager.adjustStreamVolume(3, 0, 1);
-            IntServLocGpsPP.J = MediaPlayer.create(getApplicationContext(), R.raw.pringtone);
+        // Ensure alarm and music audio streams have audible volume
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        if (audioManager != null) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_SHOW_UI);
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI);
         }
     }
 
@@ -2318,11 +2350,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AgpsApplication.resetFollowTrackProgress();
         F1 = AgpsApplication.f3575r.f3236a.size();
         G1 = AgpsApplication.f3575r.d().f3122a.size();
-        if (IntServLocGpsPP.I == null) {
-            AudioManager audioManager = (AudioManager) getSystemService("audio");
-            IntServLocGpsPP.I = audioManager;
-            audioManager.adjustStreamVolume(3, 0, 1);
-            IntServLocGpsPP.J = MediaPlayer.create(getApplicationContext(), R.raw.pringtone);
+        // Ensure alarm and music audio streams have audible volume
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        if (audioManager != null) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_SHOW_UI);
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI);
         }
     }
 
@@ -2851,6 +2883,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onClick_followPathMonitorLoadedTrack(View view) {
         if (!((CheckBox) view).isChecked()) {
             AgpsApplication.m = false;
+            AgpsApplication.isFollowLoadedTrackActive = false;
             return;
         }
         if (!this.f3639a0) {
@@ -3001,6 +3034,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onClick_returnPathMonitor(View view) {
         if (!((CheckBox) view).isChecked()) {
             AgpsApplication.f3571n = false;
+            AgpsApplication.isFollowReturnTrackActive = false;
             return;
         }
         if (!H1) {
@@ -3404,7 +3438,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         x3 x3Var;
         if (menuItem.getItemId() == R.id.version) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            c0.a(this, R.string.app_title, builder.setMessage(getApplication().getResources().getString(R.string.app_version) + ": 1.8.98")).setPositiveButton(R.string.ok, new l1(this));
+            c0.a(this, R.string.app_title, builder.setMessage(getApplication().getResources().getString(R.string.app_version) + ": " + BuildConfig.VERSION_NAME)).setPositiveButton(R.string.ok, new l1(this));
             builder.create();
             builder.show();
             return true;
@@ -3548,7 +3582,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         }
         if (menuItem.getItemId() == R.id.support) {
-            StringBuilder sbA = androidx.activity.result.d.a(" ", getApplication().getResources().getString(R.string.app_version) + " 1.8.98, ", "  ");
+            StringBuilder sbA = androidx.activity.result.d.a(" ", getApplication().getResources().getString(R.string.app_version) + " " + BuildConfig.VERSION_NAME + ", ", "  ");
             sbA.append(Build.MANUFACTURER);
             sbA.append("-");
             sbA.append(Build.MODEL);

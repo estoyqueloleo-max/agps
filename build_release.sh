@@ -79,8 +79,8 @@ if [ ! -f "$SOURCE_APK" ]; then
     exit 1
 fi
 
-VERSION_NAME=$(grep "versionName" app/build.gradle | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
-VERSION_CODE=$(grep "versionCode" app/build.gradle | head -n1 | tr -dc '0-9')
+VERSION_NAME=$(git describe --tags --always 2>/dev/null | sed 's/^v//' || echo "0.2.0")
+VERSION_CODE=$(git rev-list --count HEAD 2>/dev/null | awk '{print $1 + 100}' || echo "101")
 
 TARGET_APK_VERSION="$RELEASE_DIR/AGPS-Tracker-Community-v${VERSION_NAME}-b${VERSION_CODE}.apk"
 TARGET_APK_LATEST="$RELEASE_DIR/AGPS-Tracker-Community-latest.apk"

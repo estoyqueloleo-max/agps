@@ -36,6 +36,55 @@ if (secretsFile.exists()) {
     secretsFile.withInputStream { sftpProps.load(it) }
 }
 
+def getGitVersionName = { ->
+    def envVersion = System.getenv("VERSION_NAME")
+    if (envVersion != null && !envVersion.trim().isEmpty()) {
+        return envVersion.trim().replaceFirst("^v", "")
+    }
+    try {
+        def sout = new ByteArrayOutputStream()
+        def serr = new ByteArrayOutputStream()
+        def proc = ["git", "describe", "--tags", "--always"].execute([], rootProject.projectDir)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitFor()
+        if (proc.exitValue() == 0) {
+            def desc = sout.toString().trim()
+            if (desc.startsWith("v")) {
+                desc = desc.substring(1)
+            }
+            if (!desc.isEmpty()) {
+                return desc
+            }
+        }
+        return "0.2.0"
+    } catch (Exception ignored) {
+        return "0.2.0"
+    }
+}
+
+def getGitVersionCode = { ->
+    def envCode = System.getenv("VERSION_CODE")
+    if (envCode != null && envCode.isInteger()) {
+        return envCode.toInteger()
+    }
+    try {
+        def sout = new ByteArrayOutputStream()
+        def serr = new ByteArrayOutputStream()
+        def proc = ["git", "rev-list", "--count", "HEAD"].execute([], rootProject.projectDir)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitFor()
+        if (proc.exitValue() == 0) {
+            def count = sout.toString().trim()
+            if (count.isInteger()) {
+                return count.toInteger() + 200
+            }
+        }
+        return 201
+    } catch (Exception ignored) {
+        return 201
+    }
+}
+
 android {
 	namespace "com.giobat.AgpsTrackerPP"
     compileSdkVersion 34
@@ -44,8 +93,8 @@ android {
         applicationId 'com.giobat.AgpsTrackerPP.community'
         minSdkVersion 24
         targetSdkVersion 34
-        versionCode 102
-        versionName "0.2.1"
+        versionCode getGitVersionCode()
+        versionName getGitVersionName()
         multiDexEnabled true
 
         def sftpHost = System.getenv("SFTP_HOST") ?: sftpProps.getProperty("SFTP_HOST", "agps-tracker.cloud")
