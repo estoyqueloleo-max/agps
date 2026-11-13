@@ -37,6 +37,14 @@ public class TronArenaActivityRobolectricTest {
         activity = controller.setup().get();
     }
 
+    @org.junit.After
+    public void tearDown() {
+        if (controller != null) {
+            controller.pause().stop().destroy();
+            controller = null;
+        }
+    }
+
     @Test
     public void testLayoutInflationAndInitialState() {
         assertNotNull("Activity should not be null", activity);

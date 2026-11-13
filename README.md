@@ -80,13 +80,23 @@ We invite users who enjoy and benefit from this application to honor Giorgio by 
 
 ## 📥 Download & Installation
 
-### Option A: Direct APK Download (Recommended)
+### Editions Available (Pluggable Product Flavors)
+
+On each release, two distinct APK variants are built from independent source trees:
+
+| Edition | Package ID | Purpose | Description |
+| :--- | :--- | :--- | :--- |
+| **Community Edition** | `com.giobat.AgpsTrackerPP.community` | **Hiking & Trekking** | The rock-solid, pure revival of Giorgio Battistoni's vision. 100% offline-first, zero experimental overhead, zero extra background battery usage. |
+| **Tron Edition** | `com.giobat.AgpsTrackerPP.community.tron` | **Outdoor Gamification** | Includes the **Outdoor TRON Lightcycle Challenge** with glowing Mapsforge neon overlays, solitary survival shrinking zone, and serverless P2P mesh networking via the Pingo sidecar. See the [Tron User Guide](docs/TRON_GUIDE.md). |
+
+### Direct APK Download
 
 1. Go to the [Releases](https://github.com/estoyqueloleo-max/agps/releases) tab of this repository.
-2. Download the latest `AGPS-Tracker-Community.apk` (automatically built and attached on each GitHub Release).
-3. On your Android device, open the downloaded file.
-4. If prompted, grant permission to *Install unknown apps* for your browser or file manager.
-5. Launch **A-GPS Tracker++ (Community)** and start trekking!
+2. Download the edition of your choice:
+   * `AGPS-Tracker-Community.apk` (Standard Trekking)
+   * `AGPS-Tracker-Tron.apk` (Outdoor Tron & P2P)
+3. On your Android device, open the downloaded APK and install it.
+4. Launch the app and enjoy your outdoor adventure!
 
 ---
 

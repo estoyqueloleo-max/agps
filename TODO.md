@@ -14,17 +14,25 @@
 - **Concept:** Ghost guide overlay for tracing shapes, drawings, and text onto real-world geography using your footsteps.
 - **Features:** Vector stroke smoothing, art export (SVG / GPX / PNG), message reveal mode for friends.
 
-### 2. 🏍️ Outdoor Tron Lightcycle Challenge
-- **Concept:** Competitive outdoor game where players leave persistent colored "light walls" on the map based on GPS coordinates.
-- **Features:** Real-time collision detection (crossing an opponent's trail triggers elimination), dynamic shrinking boundary, audio/haptic cues.
+### 2. 🏍️ Outdoor Tron Lightcycle Challenge — ✅ IMPLEMENTED (Flavor `tron`)
+- **Status:** **Completed & Validated** via pluggable architecture (`GameExtension` + Gradle Product Flavor `tron`).
+- **Features:** 
+  - Pure 2D planar math collision engine with backward immunity buffer (8 m) and proximity margin (1.2 m).
+  - Real-time Mapsforge neon glow polyline overlay (cyan for player, orange for opponent, magenta arena ring).
+  - Shrinking arena boundary (*Ring: ON*) contracting at 1 m/s down to 30 m.
+  - Native haptic and acoustic proximity alerts with Android `ToneGenerator`.
+  - See full manual and architecture in [`docs/TRON_GUIDE.md`](file:///home/jose/workspace/josejuanmontiel/agps/docs/TRON_GUIDE.md).
 
 ### 3. 🧩 Outdoor GPS Labyrinths & Time Attack
 - **Concept:** Procedural virtual labyrinths projected onto outdoor locations (parks, plazas, trails).
 - **Features:** Virtual impassable walls, Fog of War exploration mode, time attack leaderboards, QR code maze sharing.
 
-### 4. 🌐 Decentralized P2P Networking (P2PT)
-- **Concept:** Serverless peer-to-peer position exchange for multiplayer modes without relying on central game servers.
-- **Features:** WebTorrent trackers + WebRTC data channels, zero server infrastructure, offline Bluetooth Low Energy (BLE) fallback.
+### 4. 🌐 Decentralized P2P Networking (P2PT / Pingo Sidecar) — ✅ IMPLEMENTED
+- **Status:** **Completed & Validated** via sidecar IPC bridge with **Pingo** (`com.pingo.app`).
+- **Features:**
+  - Scoped WebRTC DataChannel relaying coordinates and match events.
+  - Strict privacy & targeting filter (*"A quién se retransmite"*): packets are restricted strictly to confirmed match participants (`matchId`) or designated opponents (`targetPeerId`), with zero telemetry leaked to personal agenda contacts.
+  - 101 automated unit & Robolectric visual tests running on every build.
 
 ---
 

@@ -24,3 +24,4 @@ public interface TronP2PListener {
      */
     void onPingoStatusChanged(boolean isInstalled, boolean isConnected);
 }
+

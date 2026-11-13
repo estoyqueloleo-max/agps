@@ -212,3 +212,4 @@ public class PingoBridgeManagerTest {
         assertTrue("Packet from designated opponent must be accepted", invoked.get());
     }
 }
+
