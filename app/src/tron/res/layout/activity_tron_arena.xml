@@ -115,6 +115,53 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Sub HUD for P2P Match & Opponent Status -->
+    <LinearLayout
+        android:id="@+id/tron_p2p_hud"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tron_top_hud"
+        android:background="#B00A0E17"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tron_tv_p2p_match"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ROOM: TRON-1"
+            android:textColor="#00F0FF"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tron_tv_p2p_opponent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="RIVAL: SEARCHING"
+            android:textColor="#FFAA00"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/tron_tv_p2p_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="P2P: STANDALONE"
+            android:textColor="#8892B0"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="end" />
+    </LinearLayout>
+
     <!-- Bottom Controls Overlay -->
     <LinearLayout
         android:id="@+id/tron_bottom_controls"
@@ -149,6 +196,18 @@
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:text="RING: OFF" />
+
+        <Button
+            android:id="@+id/btn_tron_p2p"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:background="#202A3C"
+            android:textColor="#00F0FF"
+            android:textSize="11sp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="LOBBY" />
 
         <Button
             android:id="@+id/btn_tron_reset"

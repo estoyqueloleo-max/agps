@@ -38,14 +38,19 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
     private TextView tvSpeed;
     private TextView tvRadius;
     private TextView tvStatus;
+    private TextView tvP2pMatch;
+    private TextView tvP2pOpponent;
+    private TextView tvP2pStatus;
     private Button btnStart;
     private Button btnShrinkToggle;
+    private Button btnP2pLobby;
     private Button btnReset;
     private Button btnClose;
 
     private TronCollisionEngine collisionEngine;
     private TronOverlayManager overlayManager;
     private TronFeedbackManager feedbackManager;
+    private PingoBridgeManager bridgeManager;
     private LocationManager locationManager;
 
     private boolean isMatchActive = false;
@@ -96,8 +101,12 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         tvSpeed = findViewById(R.id.tron_tv_speed);
         tvRadius = findViewById(R.id.tron_tv_radius);
         tvStatus = findViewById(R.id.tron_tv_status);
+        tvP2pMatch = findViewById(R.id.tron_tv_p2p_match);
+        tvP2pOpponent = findViewById(R.id.tron_tv_p2p_opponent);
+        tvP2pStatus = findViewById(R.id.tron_tv_p2p_status);
         btnStart = findViewById(R.id.btn_tron_start);
         btnShrinkToggle = findViewById(R.id.btn_tron_shrink_toggle);
+        btnP2pLobby = findViewById(R.id.btn_tron_p2p);
         btnReset = findViewById(R.id.btn_tron_reset);
         btnClose = findViewById(R.id.btn_tron_close);
     }
@@ -128,13 +137,108 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         overlayManager.updateArena(arenaCenterLat, arenaCenterLon, (float) DEFAULT_RADIUS_METERS);
 
         feedbackManager = new TronFeedbackManager(this);
+        setupPingoBridge();
+    }
+
+    private void setupPingoBridge() {
+        bridgeManager = new PingoBridgeManager(this);
+        bridgeManager.setListener(new TronP2PListener() {
+            @Override
+            public void onOpponentPositionReceived(String peerId, double latitude, double longitude, float speedKmh, long timestamp) {
+                runOnUiThread(() -> {
+                    tvP2pOpponent.setText(String.format(java.util.Locale.US, "VS: %.0f km/h", speedKmh));
+                    CollisionResult opponentResult = collisionEngine.processNewLocation(peerId, latitude, longitude, timestamp);
+                    overlayManager.addPlayerPoint(peerId, latitude, longitude, "#FF7700");
+
+                    if (opponentResult.hasCollided()) {
+                        handleVictory(peerId);
+                    }
+                });
+            }
+
+            @Override
+            public void onOpponentDerezzed(String peerId, String reason) {
+                runOnUiThread(() -> handleVictory(peerId));
+            }
+
+            @Override
+            public void onArenaSyncReceived(double centerLatitude, double centerLongitude, double radiusMeters) {
+                runOnUiThread(() -> {
+                    arenaCenterLat = centerLatitude;
+                    arenaCenterLon = centerLongitude;
+                    if (collisionEngine != null) {
+                        collisionEngine.setArena(new ArenaGeofence(centerLatitude, centerLongitude, radiusMeters));
+                    }
+                    if (overlayManager != null) {
+                        overlayManager.updateArena(centerLatitude, centerLongitude, (float) radiusMeters);
+                    }
+                    if (mapView != null) {
+                        mapView.getModel().mapViewPosition.setCenter(new LatLong(centerLatitude, centerLongitude));
+                    }
+                });
+            }
+
+            @Override
+            public void onPingoStatusChanged(boolean isInstalled, boolean isConnected) {
+                runOnUiThread(() -> {
+                    if (!isInstalled) {
+                        tvP2pStatus.setText("P2P: NO PINGO");
+                        tvP2pStatus.setTextColor(Color.parseColor("#8892B0"));
+                    } else if (isConnected) {
+                        tvP2pStatus.setText("P2P: ONLINE");
+                        tvP2pStatus.setTextColor(Color.parseColor("#00FF66"));
+                    } else {
+                        tvP2pStatus.setText("P2P: READY");
+                        tvP2pStatus.setTextColor(Color.parseColor("#00F0FF"));
+                    }
+                });
+            }
+        });
     }
 
     private void initControls() {
         btnStart.setOnClickListener(v -> toggleMatch());
         btnShrinkToggle.setOnClickListener(v -> toggleShrink());
+        btnP2pLobby.setOnClickListener(v -> showLobbyDialog());
         btnReset.setOnClickListener(v -> resetMatch());
         btnClose.setOnClickListener(v -> finish());
+    }
+
+    private void showLobbyDialog() {
+        android.widget.LinearLayout dialogLayout = new android.widget.LinearLayout(this);
+        dialogLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        dialogLayout.setPadding(40, 20, 40, 10);
+
+        final android.widget.EditText etMatchId = new android.widget.EditText(this);
+        etMatchId.setHint("Match ID (e.g. TRON-1)");
+        etMatchId.setText(bridgeManager.getActiveMatchId());
+        dialogLayout.addView(etMatchId);
+
+        final android.widget.EditText etOpponentId = new android.widget.EditText(this);
+        etOpponentId.setHint("Opponent Peer ID (Optional)");
+        if (bridgeManager.getTargetOpponentPeerId() != null) {
+            etOpponentId.setText(bridgeManager.getTargetOpponentPeerId());
+        }
+        dialogLayout.addView(etOpponentId);
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("TRON P2P Lobby")
+                .setMessage("Configura la sala multijugador P2P a través de Pingo:")
+                .setView(dialogLayout)
+                .setPositiveButton("Unirse", (dialog, which) -> {
+                    String matchId = etMatchId.getText().toString().trim();
+                    String opponentId = etOpponentId.getText().toString().trim();
+                    if (!matchId.isEmpty()) {
+                        bridgeManager.setActiveMatchId(matchId);
+                        bridgeManager.setTargetOpponentPeerId(opponentId.isEmpty() ? null : opponentId);
+                        tvP2pMatch.setText("ROOM: " + matchId);
+                        tvP2pOpponent.setText(opponentId.isEmpty() ? "RIVAL: AUTO" : "VS: " + opponentId);
+                        bridgeManager.notifyMatchConfigurationToPingo();
+                        Toast.makeText(this, "Sala configurada: " + matchId, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private void toggleMatch() {
@@ -176,6 +280,9 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         tvStatus.setText("ACTIVE");
         tvStatus.setTextColor(Color.parseColor("#00F0FF"));
 
+        bridgeManager.start();
+        bridgeManager.sendArenaSync(arenaCenterLat, arenaCenterLon, DEFAULT_RADIUS_METERS);
+
         feedbackManager.playMatchStart();
         timerHandler.post(timerRunnable);
     }
@@ -201,6 +308,10 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         isDerezzed = false;
         timerHandler.removeCallbacks(timerRunnable);
 
+        if (bridgeManager != null) {
+            bridgeManager.stop();
+        }
+
         collisionEngine.reset();
         overlayManager.clear();
         overlayManager.updateArena(arenaCenterLat, arenaCenterLon, (float) DEFAULT_RADIUS_METERS);
@@ -210,6 +321,7 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         tvRadius.setText(String.format(java.util.Locale.US, "%.0f m", DEFAULT_RADIUS_METERS));
         tvStatus.setText("READY");
         tvStatus.setTextColor(Color.parseColor("#00FF66"));
+        tvP2pOpponent.setText("RIVAL: READY");
 
         btnStart.setText("START");
         btnStart.setBackgroundColor(Color.parseColor("#00F0FF"));
@@ -234,6 +346,11 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         tvSpeed.setText(String.format(java.util.Locale.US, "%.1f km/h", speedKmh));
 
         long now = System.currentTimeMillis();
+
+        if (bridgeManager != null) {
+            bridgeManager.sendPosition(location.getLatitude(), location.getLongitude(), (float) speedKmh, now);
+        }
+
         CollisionResult result = collisionEngine.processNewLocation(
                 PLAYER_ID, location.getLatitude(), location.getLongitude(), now);
 
@@ -249,6 +366,10 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
         isMatchActive = false;
         timerHandler.removeCallbacks(timerRunnable);
 
+        if (bridgeManager != null) {
+            bridgeManager.sendDerezzed(result.getType().name());
+        }
+
         tvStatus.setText("DEREZZED!");
         tvStatus.setTextColor(Color.parseColor("#FF0055"));
         btnStart.setText("START");
@@ -256,6 +377,22 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
 
         feedbackManager.playCollisionAlert();
         Toast.makeText(this, "💥 DEREZZED! " + result.getDetails(), Toast.LENGTH_LONG).show();
+    }
+
+    private void handleVictory(String opponentPeerId) {
+        if (!isMatchActive || isDerezzed) return;
+
+        isMatchActive = false;
+        timerHandler.removeCallbacks(timerRunnable);
+
+        tvStatus.setText("VICTORY!");
+        tvStatus.setTextColor(Color.parseColor("#00FF66"));
+        tvP2pOpponent.setText("VS: DEREZZED");
+        btnStart.setText("START");
+        btnStart.setBackgroundColor(Color.parseColor("#00F0FF"));
+
+        feedbackManager.playMatchStart();
+        Toast.makeText(this, "🏆 VICTORIA! Rival " + opponentPeerId + " destruido!", Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -272,6 +409,9 @@ public class TronArenaActivity extends AppCompatActivity implements LocationList
     protected void onDestroy() {
         super.onDestroy();
         timerHandler.removeCallbacks(timerRunnable);
+        if (bridgeManager != null) {
+            bridgeManager.stop();
+        }
         if (locationManager != null) {
             try {
                 locationManager.removeUpdates(this);

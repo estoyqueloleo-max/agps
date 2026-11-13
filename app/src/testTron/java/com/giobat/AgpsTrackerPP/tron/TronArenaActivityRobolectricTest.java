@@ -117,5 +117,58 @@ public class TronArenaActivityRobolectricTest {
         activity.onLocationChanged(outOfBounds);
         assertEquals("DEREZZED!", tvStatus.getText().toString());
     }
+
+    @Test
+    public void testP2pHudViewsPresenceAndInitialState() {
+        TextView tvP2pMatch = activity.findViewById(R.id.tron_tv_p2p_match);
+        TextView tvP2pOpponent = activity.findViewById(R.id.tron_tv_p2p_opponent);
+        TextView tvP2pStatus = activity.findViewById(R.id.tron_tv_p2p_status);
+        Button btnP2pLobby = activity.findViewById(R.id.btn_tron_p2p);
+
+        assertNotNull(tvP2pMatch);
+        assertNotNull(tvP2pOpponent);
+        assertNotNull(tvP2pStatus);
+        assertNotNull(btnP2pLobby);
+
+        assertTrue(tvP2pMatch.getText().toString().contains("ROOM:"));
+        assertTrue(tvP2pOpponent.getText().toString().contains("RIVAL:"));
+        assertEquals("LOBBY", btnP2pLobby.getText().toString());
+    }
+
+    @Test
+    public void testIncomingOpponentPositionPacketUpdatesHud() {
+        Button btnStart = activity.findViewById(R.id.btn_tron_start);
+        TextView tvP2pOpponent = activity.findViewById(R.id.tron_tv_p2p_opponent);
+        btnStart.performClick();
+
+        android.content.Intent opponentIntent = new android.content.Intent(PingoBridgeManager.ACTION_TRON_RECEIVE_PACKET);
+        opponentIntent.putExtra(PingoBridgeManager.EXTRA_MATCH_ID, "TRON-1");
+        opponentIntent.putExtra(PingoBridgeManager.EXTRA_SENDER_PEER_ID, "peer_alice");
+        opponentIntent.putExtra(PingoBridgeManager.EXTRA_PAYLOAD,
+                "{\"type\":\"tron_pos\",\"lat\":40.4154,\"lng\":-3.6844,\"speed\":18.0,\"timestamp\":1731526400000}");
+
+        org.robolectric.RuntimeEnvironment.getApplication().sendBroadcast(opponentIntent);
+        org.robolectric.shadows.ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertTrue("Opponent HUD should display received speed", tvP2pOpponent.getText().toString().contains("18"));
+    }
+
+    @Test
+    public void testIncomingOpponentDerezzedTriggersVictoryState() {
+        Button btnStart = activity.findViewById(R.id.btn_tron_start);
+        TextView tvStatus = activity.findViewById(R.id.tron_tv_status);
+        btnStart.performClick();
+
+        android.content.Intent opponentDerezzedIntent = new android.content.Intent(PingoBridgeManager.ACTION_TRON_RECEIVE_PACKET);
+        opponentDerezzedIntent.putExtra(PingoBridgeManager.EXTRA_MATCH_ID, "TRON-1");
+        opponentDerezzedIntent.putExtra(PingoBridgeManager.EXTRA_SENDER_PEER_ID, "peer_alice");
+        opponentDerezzedIntent.putExtra(PingoBridgeManager.EXTRA_PAYLOAD,
+                "{\"type\":\"tron_derezzed\",\"reason\":\"COLLISION_OPPONENT_TRAIL\"}");
+
+        org.robolectric.RuntimeEnvironment.getApplication().sendBroadcast(opponentDerezzedIntent);
+        org.robolectric.shadows.ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertEquals("VICTORY!", tvStatus.getText().toString());
+    }
 }
 
