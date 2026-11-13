@@ -28,6 +28,7 @@ public class TronArenaActivityRobolectricTest {
 
     @Before
     public void setUp() {
+        com.giobat.AgpsTrackerPP.MainActivity.f3613a1 = null;
         // Ensure AndroidGraphicFactory instance exists for Mapsforge views
         try {
             AndroidGraphicFactory.createInstance(org.robolectric.RuntimeEnvironment.getApplication());
@@ -43,6 +44,7 @@ public class TronArenaActivityRobolectricTest {
             controller.pause().stop().destroy();
             controller = null;
         }
+        com.giobat.AgpsTrackerPP.MainActivity.f3613a1 = null;
     }
 
     @Test
