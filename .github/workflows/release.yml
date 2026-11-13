@@ -53,38 +53,49 @@ jobs:
           fi
 
       - name: Run Unit & Visual Tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testCommunityDebugUnitTest testTronDebugUnitTest --stacktrace
 
-      - name: Build Release APK
+      - name: Build Release APKs
         run: ./gradlew assembleRelease --stacktrace
 
-      - name: Prepare APK Asset
+      - name: Prepare APK Assets
         id: prepare_apk
         run: |
           mkdir -p release-assets
-          RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
-          if [ -f "$RELEASE_APK" ]; then
-            if [ "${{ github.event_name }}" = "pull_request" ]; then
-              TAG_OR_REF="PR-${{ github.event.pull_request.number }}"
-            else
-              TAG_OR_REF="${{ github.ref_name }}"
-              if [ -z "$TAG_OR_REF" ] || [ "$TAG_OR_REF" = "master" ]; then
-                TAG_OR_REF="latest"
-              fi
-            fi
-            cp "$RELEASE_APK" "release-assets/AGPS-Tracker-Community-${TAG_OR_REF}.apk"
-            cp "$RELEASE_APK" "release-assets/AGPS-Tracker-Community.apk"
-            echo "apk_path=release-assets/AGPS-Tracker-Community.apk" >> $GITHUB_OUTPUT
-            echo "named_apk_path=release-assets/AGPS-Tracker-Community-${TAG_OR_REF}.apk" >> $GITHUB_OUTPUT
+          COMMUNITY_APK="app/build/outputs/apk/community/release/app-community-release.apk"
+          TRON_APK="app/build/outputs/apk/tron/release/app-tron-release.apk"
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            TAG_OR_REF="PR-${{ github.event.pull_request.number }}"
           else
-            echo "Error: Release APK not found!" >&2
+            TAG_OR_REF="${{ github.ref_name }}"
+            if [ -z "$TAG_OR_REF" ] || [ "$TAG_OR_REF" = "master" ]; then
+              TAG_OR_REF="latest"
+            fi
+          fi
+
+          if [ -f "$COMMUNITY_APK" ]; then
+            cp "$COMMUNITY_APK" "release-assets/AGPS-Tracker-Community-${TAG_OR_REF}.apk"
+            cp "$COMMUNITY_APK" "release-assets/AGPS-Tracker-Community.apk"
+            echo "community_apk=release-assets/AGPS-Tracker-Community.apk" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Community Release APK not found!" >&2
             exit 1
           fi
 
-      - name: Upload APK as Workflow Artifact
+          if [ -f "$TRON_APK" ]; then
+            cp "$TRON_APK" "release-assets/AGPS-Tracker-Tron-${TAG_OR_REF}.apk"
+            cp "$TRON_APK" "release-assets/AGPS-Tracker-Tron.apk"
+            echo "tron_apk=release-assets/AGPS-Tracker-Tron.apk" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Tron Release APK not found!" >&2
+            exit 1
+          fi
+
+      - name: Upload APKs as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AGPS-Tracker-Community-APK${{ github.event_name == 'pull_request' && format('-PR-{0}', github.event.pull_request.number) || '' }}
+          name: AGPS-Tracker-APKs${{ github.event_name == 'pull_request' && format('-PR-{0}', github.event.pull_request.number) || '' }}
           path: release-assets/*.apk
           retention-days: 30
 
