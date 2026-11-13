@@ -56,49 +56,62 @@ fi
 # 3. Run unit tests (unless --skip-tests is set)
 if [ "$SKIP_TESTS" = false ]; then
     echo -e "\n${BLUE}🧪 [1/3] Running unit and component tests...${NC}"
-    ./gradlew testDebugUnitTest
+    ./gradlew testCommunityDebugUnitTest testTronDebugUnitTest
     echo -e "${GREEN}✓ All tests passed.${NC}"
 else
     echo -e "\n${YELLOW}⚠️  Skipping unit tests (--skip-tests flag active)${NC}"
 fi
 
 # 4. Clean and build the Release APK
-echo -e "\n${BLUE}📦 [2/3] Building Release APK with Gradle...${NC}"
+echo -e "\n${BLUE}📦 [2/3] Building Release APKs with Gradle...${NC}"
 ./gradlew clean assembleRelease
 
-# 5. Organize and rename the output APK
-echo -e "\n${BLUE}📂 [3/3] Preparing final APK...${NC}"
+# 5. Organize and rename the output APKs
+echo -e "\n${BLUE}📂 [3/3] Preparing final APKs...${NC}"
 
 RELEASE_DIR="$PROJECT_DIR/dist"
 mkdir -p "$RELEASE_DIR"
 
-SOURCE_APK="$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk"
-
-if [ ! -f "$SOURCE_APK" ]; then
-    echo -e "${RED}❌ Error: APK not found at $SOURCE_APK${NC}"
-    exit 1
-fi
-
 VERSION_NAME=$(git describe --tags --always 2>/dev/null | sed 's/^v//' || echo "0.2.0")
 VERSION_CODE=$(git rev-list --count HEAD 2>/dev/null | awk '{print $1 + 100}' || echo "101")
 
-TARGET_APK_VERSION="$RELEASE_DIR/AGPS-Tracker-Community-v${VERSION_NAME}-b${VERSION_CODE}.apk"
-TARGET_APK_LATEST="$RELEASE_DIR/AGPS-Tracker-Community-latest.apk"
+# Community Edition
+COMMUNITY_APK="$PROJECT_DIR/app/build/outputs/apk/community/release/app-community-release.apk"
+if [ -f "$COMMUNITY_APK" ]; then
+    TARGET_COMMUNITY_VERSION="$RELEASE_DIR/AGPS-Tracker-Community-v${VERSION_NAME}-b${VERSION_CODE}.apk"
+    TARGET_COMMUNITY_LATEST="$RELEASE_DIR/AGPS-Tracker-Community-latest.apk"
+    cp "$COMMUNITY_APK" "$TARGET_COMMUNITY_VERSION"
+    cp "$COMMUNITY_APK" "$TARGET_COMMUNITY_LATEST"
+    echo -e "✓ Community APK:  ${YELLOW}$TARGET_COMMUNITY_VERSION${NC} ($(du -h "$TARGET_COMMUNITY_VERSION" | cut -f1))"
+else
+    echo -e "${RED}❌ Warning: Community APK not found at $COMMUNITY_APK${NC}"
+fi
 
-cp "$SOURCE_APK" "$TARGET_APK_VERSION"
-cp "$SOURCE_APK" "$TARGET_APK_LATEST"
-
-APK_SIZE=$(du -h "$TARGET_APK_VERSION" | cut -f1)
-SHA256=$(sha256sum "$TARGET_APK_VERSION" | cut -d' ' -f1)
+# Tron Edition
+TRON_APK="$PROJECT_DIR/app/build/outputs/apk/tron/release/app-tron-release.apk"
+if [ -f "$TRON_APK" ]; then
+    TARGET_TRON_VERSION="$RELEASE_DIR/AGPS-Tracker-Tron-v${VERSION_NAME}-b${VERSION_CODE}.apk"
+    TARGET_TRON_LATEST="$RELEASE_DIR/AGPS-Tracker-Tron-latest.apk"
+    cp "$TRON_APK" "$TARGET_TRON_VERSION"
+    cp "$TRON_APK" "$TARGET_TRON_LATEST"
+    echo -e "✓ Tron APK:       ${YELLOW}$TARGET_TRON_VERSION${NC} ($(du -h "$TARGET_TRON_VERSION" | cut -f1))"
+else
+    echo -e "${YELLOW}⚠️ Tron APK not found at $TRON_APK${NC}"
+fi
 
 echo -e "\n${GREEN}======================================================${NC}"
-echo -e "${GREEN}  🎉 Release build completed successfully!             ${NC}"
+echo -e "${GREEN}  🎉 Release builds completed successfully!            ${NC}"
 echo -e "${GREEN}======================================================${NC}"
-echo -e "📍 Output file:   ${YELLOW}$TARGET_APK_VERSION${NC}"
-echo -e "📍 Latest link:   ${YELLOW}$TARGET_APK_LATEST${NC}"
-echo -e "⚖️  Size:          $APK_SIZE"
-echo -e "🔒 SHA256:        $SHA256"
+if [ -f "${TARGET_COMMUNITY_VERSION:-}" ]; then
+    echo -e "📍 Community APK: ${YELLOW}$TARGET_COMMUNITY_VERSION${NC} ($(du -h "$TARGET_COMMUNITY_VERSION" | cut -f1))"
+    echo -e "   Latest link:   ${YELLOW}$TARGET_COMMUNITY_LATEST${NC}"
+fi
+if [ -f "${TARGET_TRON_VERSION:-}" ]; then
+    echo -e "📍 Tron APK:      ${YELLOW}$TARGET_TRON_VERSION${NC} ($(du -h "$TARGET_TRON_VERSION" | cut -f1))"
+    echo -e "   Latest link:   ${YELLOW}$TARGET_TRON_LATEST${NC}"
+fi
 echo ""
 echo -e "${BLUE}💡 To install on a connected USB device:${NC}"
-echo -e "   adb install -r \"$TARGET_APK_LATEST\""
+echo -e "   adb install -r \"$TARGET_COMMUNITY_LATEST\""
+echo -e "   adb install -r \"$TARGET_TRON_LATEST\""
 echo ""

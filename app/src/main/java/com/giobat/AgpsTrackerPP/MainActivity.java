@@ -3330,6 +3330,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             menu.findItem(R.id.elev_dems).setChecked(true);
             AgpsApplication.A = 1;
         }
+        com.giobat.AgpsTrackerPP.plugin.GameExtensionProvider.get().onPrepareOptionsMenu(menu, this);
         return true;
     }
 
@@ -3414,7 +3415,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override // android.app.Activity
     public boolean onOptionsItemSelected(MenuItem menuItem) {
-        boolean z = false;
+        if (com.giobat.AgpsTrackerPP.plugin.GameExtensionProvider.get().onOptionsItemSelected(this, menuItem)) {
+            return true;
+        }
+        boolean sdCardTestPassed = false;
         x3 x3Var;
         if (menuItem.getItemId() == R.id.version) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -3705,12 +3709,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             byte[] bytes = "Test".getBytes();
                             fileOutputStream.write(bytes, 0, bytes.length);
                             fileOutputStream.close();
-                            z = true;
+                            sdCardTestPassed = true;
                         } catch (Exception e9) {
                             String str = "SD Test: write file failed:" + e9;
                             w0(str);
                             v2.e("GPS-M", str);
-                            z = false;
+                            sdCardTestPassed = false;
                         }
                     } catch (Exception e10) {
                         String str2 = "SD Test: create dir failed:" + e10;
@@ -3718,9 +3722,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         v2.e("GPS-M", str2);
                     }
                 } else {
-                    z = false;
+                    sdCardTestPassed = false;
                 }
-                if (z) {
+                if (sdCardTestPassed) {
                     AlertDialog.Builder builder7 = new AlertDialog.Builder(this);
                     c0.a(this, R.string.use_sd_dialog_title, builder7.setMessage(Html.fromHtml(getApplication().getResources().getString(R.string.use_sd_msg), 0))).setPositiveButton(R.string.continue_button, new r1(this, menuItem)).setNegativeButton(R.string.cancel, new q1(this, menuItem));
                     AlertDialog alertDialogCreate2 = builder7.create();
