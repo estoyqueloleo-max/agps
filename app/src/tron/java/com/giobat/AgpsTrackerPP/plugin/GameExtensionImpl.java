@@ -28,7 +28,8 @@ public class GameExtensionImpl implements GameExtension {
     @Override
     public boolean onOptionsItemSelected(Context context, MenuItem item) {
         if (item != null && item.getItemId() == MENU_TRON_ID) {
-            Toast.makeText(context, "Tron Lightcycle Challenge (Modo Experimental)", Toast.LENGTH_SHORT).show();
+            android.content.Intent intent = new android.content.Intent(context, com.giobat.AgpsTrackerPP.tron.TronArenaActivity.class);
+            context.startActivity(intent);
             return true;
         }
         return false;
