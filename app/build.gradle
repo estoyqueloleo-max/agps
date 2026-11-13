@@ -108,6 +108,19 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions "edition"
+
+    productFlavors {
+        community {
+            dimension "edition"
+        }
+        tron {
+            dimension "edition"
+            applicationIdSuffix ".tron"
+            versionNameSuffix "-tron"
+        }
+    }
+
     signingConfigs {
         community {
             storeFile file("community.keystore")
